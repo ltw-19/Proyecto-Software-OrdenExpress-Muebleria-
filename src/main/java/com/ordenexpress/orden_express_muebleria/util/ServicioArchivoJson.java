@@ -39,8 +39,8 @@ import java.util.function.Function;
  *     public MuebleRepositorio(ServicioArchivoJson archivos) { this.archivos = archivos; }
  *
  * Garantías:
- *  1. Si un archivo no existe, se crea solo con un arreglo vacío "[]".
- *  2. Un error de lectura/escritura (IOException) se registra en el log y se
+ *  *  1. Si un archivo no existe, se crea solo con un arreglo vacío "[]".
+ *  *  2. Un error de lectura/escritura (IOException) se registra en el log y se
  *     convierte en ExcepcionAlmacenamiento: el servidor sigue vivo.
  *  3. Dos peticiones simultáneas no corrompen el archivo (candado por archivo).
  *  4. La escritura es "todo o nada": se escribe en un archivo temporal y luego

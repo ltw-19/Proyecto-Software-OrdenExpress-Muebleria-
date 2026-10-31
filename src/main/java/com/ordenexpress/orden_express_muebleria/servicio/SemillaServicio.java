@@ -5,7 +5,6 @@ import com.ordenexpress.orden_express_muebleria.modelo.Rol;
 import com.ordenexpress.orden_express_muebleria.modelo.Usuario;
 import com.ordenexpress.orden_express_muebleria.repositorio.MuebleRepositorio;
 import com.ordenexpress.orden_express_muebleria.repositorio.UsuarioRepositorio;
-import com.ordenexpress.orden_express_muebleria.util.ServicioArchivoJson;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.boot.ApplicationArguments;
@@ -28,7 +27,8 @@ import java.util.UUID;
  * Al arrancar el backend deja el sistema listo para usarse, aunque la carpeta
  * datos/ no exista (porque está en el .gitignore):
  *  - Usuarios: si usuarios.json está vacío, crea el ADMIN y el Gestor de Ventas iniciales.
- *  - Muebles: si muebles.json se creó en ESTE arranque, carga 6 muebles de ejemplo.
+ *  - Muebles: si es un sistema nuevo (en este arranque se crearon los usuarios iniciales)
+ *    y muebles.json está vacío, carga 6 muebles de ejemplo.
  */
 @Component
 public class SemillaServicio implements ApplicationRunner {
@@ -37,34 +37,34 @@ public class SemillaServicio implements ApplicationRunner {
 
     private final UsuarioRepositorio usuarioRepositorio;
     private final MuebleRepositorio muebleRepositorio;
-    private final ServicioArchivoJson archivos;
     private final PasswordEncoder codificador;
     private final Environment entorno;
 
     public SemillaServicio(UsuarioRepositorio usuarioRepositorio, MuebleRepositorio muebleRepositorio,
-                           ServicioArchivoJson archivos, PasswordEncoder codificador, Environment entorno) {
+                           PasswordEncoder codificador, Environment entorno) {
         this.usuarioRepositorio = usuarioRepositorio;
         this.muebleRepositorio = muebleRepositorio;
-        this.archivos = archivos;
         this.codificador = codificador;
         this.entorno = entorno;
     }
 
     @Override
     public void run(ApplicationArguments argumentos) {
-        sembrarUsuarios();
-        sembrarMuebles();
+        boolean sistemaNuevo = sembrarUsuarios();
+        sembrarMuebles(sistemaNuevo);
     }
 
-    private void sembrarUsuarios() {
+    /** @return true si el sistema era nuevo y se crearon los usuarios iniciales. */
+    private boolean sembrarUsuarios() {
         if (!usuarioRepositorio.listar().isEmpty()) {
-            return;
+            return false;
         }
         Usuario admin = crearUsuarioSemilla("admin", Rol.ADMIN);
         Usuario gestor = crearUsuarioSemilla("gestor", Rol.GESTOR);
         usuarioRepositorio.guardarTodos(List.of(admin, gestor));
         registro.warn("usuarios.json estaba vacío: se crearon el ADMIN ({}) y el GESTOR ({}) iniciales. "
                 + "Cambia sus claves antes de la entrega.", admin.correo(), gestor.correo());
+        return true;
     }
 
     /** Lee nombre, correo y clave desde application.properties (app.semilla.<prefijo>.*). */
@@ -81,10 +81,11 @@ public class SemillaServicio implements ApplicationRunner {
                 Instant.now());
     }
 
-    private void sembrarMuebles() {
-        // Solo si el archivo se acaba de crear: así, si más adelante se eliminan todos
-        // los muebles, no reaparecen los de ejemplo al reiniciar.
-        if (!archivos.fueCreadoEnEsteArranque("muebles.json") || !muebleRepositorio.listar().isEmpty()) {
+    private void sembrarMuebles(boolean sistemaNuevo) {
+        // Solo en un sistema nuevo: así, si más adelante se eliminan todos los muebles, no reaparecen
+        // los de ejemplo al reiniciar. Tampoco depende de que muebles.json ya existiera vacío por un
+        // intento de arranque anterior que falló.
+        if (!sistemaNuevo || !muebleRepositorio.listar().isEmpty()) {
             return;
         }
         muebleRepositorio.guardarTodos(List.of(
@@ -100,7 +101,7 @@ public class SemillaServicio implements ApplicationRunner {
                         "Melamina y estructura metálica", "210.00"),
                 mueble("Biblioteca Cedro 5 niveles", "Oficina", "90", "180", "35",
                         "Madera de cedro", "175.00")));
-        registro.info("muebles.json se creó en este arranque: se cargaron 6 muebles de ejemplo.");
+        registro.info("Sistema nuevo: se cargaron 6 muebles de ejemplo en muebles.json.");
     }
 
     private Mueble mueble(String nombre, String categoria, String ancho, String alto, String profundidad,
