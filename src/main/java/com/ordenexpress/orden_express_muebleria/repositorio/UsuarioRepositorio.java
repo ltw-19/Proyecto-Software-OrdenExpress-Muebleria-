@@ -34,6 +34,24 @@ public class UsuarioRepositorio {
         return listar().stream().filter(u -> u.correo().equalsIgnoreCase(buscado)).findFirst();
     }
 
+    /**
+     * Agrega un usuario SOLO si su correo todavía no existe. La comprobación y el guardado
+     * ocurren bajo el mismo candado: si dos personas se registran a la vez con el mismo correo,
+     * solo una lo logra.
+     *
+     * @return true si se agregó; false si el correo ya estaba registrado (el archivo no cambia).
+     */
+    public boolean agregarSiCorreoNoExiste(Usuario nuevo) {
+        return archivos.modificarLista(ARCHIVO, Usuario.class, lista -> {
+            boolean existe = lista.stream().anyMatch(u -> u.correo().equalsIgnoreCase(nuevo.correo()));
+            if (existe) {
+                return false;
+            }
+            lista.add(nuevo);
+            return true;
+        });
+    }
+
     /** Agrega varios usuarios de una sola vez (lectura + escritura bajo el mismo candado). */
     public void guardarTodos(List<Usuario> nuevos) {
         archivos.modificarLista(ARCHIVO, Usuario.class, lista -> lista.addAll(nuevos));

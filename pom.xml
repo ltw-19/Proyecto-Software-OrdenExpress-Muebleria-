@@ -1,141 +1,141 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-		 xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
-	<modelVersion>4.0.0</modelVersion>
-	<parent>
-		<groupId>org.springframework.boot</groupId>
-		<artifactId>spring-boot-starter-parent</artifactId>
-		<version>4.1.2</version>
-		<relativePath/> <!-- lookup parent from repository -->
-	</parent>
-	<groupId>com.ordenexpress</groupId>
-	<artifactId>orden-express-muebleria</artifactId>
-	<version>0.0.1-SNAPSHOT</version>
-	<name>OrdenExpress Mueblería</name>
-	<description>Sistema de pedidos en línea para la mueblería Galería de Casa</description>
-	<properties>
-		<java.version>25</java.version>
-		<jjwt.version>0.12.6</jjwt.version>
-		<openpdf.version>1.3.43</openpdf.version>
-	</properties>
-	<dependencies>
-		<!-- API REST (@RestController) -->
-		<dependency>
-			<groupId>org.springframework.boot</groupId>
-			<artifactId>spring-boot-starter-webmvc</artifactId>
-		</dependency>
+    xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+    <parent>
+       <groupId>org.springframework.boot</groupId>
+       <artifactId>spring-boot-starter-parent</artifactId>
+       <version>4.1.2</version>
+       <relativePath/> <!-- lookup parent from repository -->
+    </parent>
+    <groupId>com.ordenexpress</groupId>
+    <artifactId>orden-express-muebleria</artifactId>
+    <version>0.0.1-SNAPSHOT</version>
+    <name>OrdenExpress Mueblería</name>
+    <description>Sistema de pedidos en línea para la mueblería Galería de Casa</description>
+    <properties>
+       <java.version>25</java.version>
+       <jjwt.version>0.12.6</jjwt.version>
+       <openpdf.version>1.3.43</openpdf.version>
+    </properties>
+    <dependencies>
+       <!-- API REST (@RestController) -->
+       <dependency>
+          <groupId>org.springframework.boot</groupId>
+          <artifactId>spring-boot-starter-webmvc</artifactId>
+       </dependency>
 
-		<!-- Jackson 3 (tools.jackson): lectura/escritura de los archivos JSON.
-             Ya llega con el starter webmvc; se declara explícito porque ServicioArchivoJson lo usa directamente. -->
-		<dependency>
-			<groupId>org.springframework.boot</groupId>
-			<artifactId>spring-boot-starter-jackson</artifactId>
-		</dependency>
+       <!-- Jackson 3 (tools.jackson): lectura/escritura de los archivos JSON.
+            Ya llega con el starter webmvc; se declara explícito porque ServicioArchivoJson lo usa directamente. -->
+       <dependency>
+          <groupId>org.springframework.boot</groupId>
+          <artifactId>spring-boot-starter-jackson</artifactId>
+       </dependency>
 
-		<!-- Validaciones en el backend (@NotBlank, @DecimalMin, ...) -->
-		<dependency>
-			<groupId>org.springframework.boot</groupId>
-			<artifactId>spring-boot-starter-validation</artifactId>
-		</dependency>
+       <!-- Validaciones en el backend (@NotBlank, @DecimalMin, ...) -->
+       <dependency>
+          <groupId>org.springframework.boot</groupId>
+          <artifactId>spring-boot-starter-validation</artifactId>
+       </dependency>
 
-		<!-- Spring Security: filtros, roles y BCrypt -->
-		<dependency>
-			<groupId>org.springframework.boot</groupId>
-			<artifactId>spring-boot-starter-security</artifactId>
-		</dependency>
+       <!-- Spring Security: filtros, roles y BCrypt -->
+       <dependency>
+          <groupId>org.springframework.boot</groupId>
+          <artifactId>spring-boot-starter-security</artifactId>
+       </dependency>
 
-		<!-- JJWT: crear y validar tokens JWT -->
-		<dependency>
-			<groupId>io.jsonwebtoken</groupId>
-			<artifactId>jjwt-api</artifactId>
-			<version>${jjwt.version}</version>
-		</dependency>
-		<dependency>
-			<groupId>io.jsonwebtoken</groupId>
-			<artifactId>jjwt-impl</artifactId>
-			<version>${jjwt.version}</version>
-			<scope>runtime</scope>
-		</dependency>
-		<!-- CORREGIDO: se usa jjwt-gson en lugar de jjwt-jackson.
-             jjwt-jackson necesita Jackson 2 y Spring Boot 4 trae Jackson 3; mezclarlos duplica librerías JSON. -->
-		<dependency>
-			<groupId>io.jsonwebtoken</groupId>
-			<artifactId>jjwt-gson</artifactId>
-			<version>${jjwt.version}</version>
-			<scope>runtime</scope>
-		</dependency>
+       <!-- JJWT: crear y validar tokens JWT -->
+       <dependency>
+          <groupId>io.jsonwebtoken</groupId>
+          <artifactId>jjwt-api</artifactId>
+          <version>${jjwt.version}</version>
+       </dependency>
+       <dependency>
+          <groupId>io.jsonwebtoken</groupId>
+          <artifactId>jjwt-impl</artifactId>
+          <version>${jjwt.version}</version>
+          <scope>runtime</scope>
+       </dependency>
+       <!-- CORREGIDO: se usa jjwt-gson en lugar de jjwt-jackson.
+            jjwt-jackson necesita Jackson 2 y Spring Boot 4 trae Jackson 3; mezclarlos duplica librerías JSON. -->
+       <dependency>
+          <groupId>io.jsonwebtoken</groupId>
+          <artifactId>jjwt-gson</artifactId>
+          <version>${jjwt.version}</version>
+          <scope>runtime</scope>
+       </dependency>
 
-		<!-- OpenPDF: generación de la Pre-orden en PDF -->
-		<dependency>
-			<groupId>com.github.librepdf</groupId>
-			<artifactId>openpdf</artifactId>
-			<version>${openpdf.version}</version>
-		</dependency>
+       <!-- OpenPDF: generación de la Pre-orden en PDF -->
+       <dependency>
+          <groupId>com.github.librepdf</groupId>
+          <artifactId>openpdf</artifactId>
+          <version>${openpdf.version}</version>
+       </dependency>
 
-		<dependency>
-			<groupId>org.springframework.boot</groupId>
-			<artifactId>spring-boot-devtools</artifactId>
-			<scope>runtime</scope>
-			<optional>true</optional>
-		</dependency>
-		<dependency>
-			<groupId>org.projectlombok</groupId>
-			<artifactId>lombok</artifactId>
-			<optional>true</optional>
-		</dependency>
-		<dependency>
-			<groupId>org.springframework.boot</groupId>
-			<artifactId>spring-boot-starter-webmvc-test</artifactId>
-			<scope>test</scope>
-		</dependency>
+       <dependency>
+          <groupId>org.springframework.boot</groupId>
+          <artifactId>spring-boot-devtools</artifactId>
+          <scope>runtime</scope>
+          <optional>true</optional>
+       </dependency>
+       <dependency>
+          <groupId>org.projectlombok</groupId>
+          <artifactId>lombok</artifactId>
+          <optional>true</optional>
+       </dependency>
+       <dependency>
+          <groupId>org.springframework.boot</groupId>
+          <artifactId>spring-boot-starter-webmvc-test</artifactId>
+          <scope>test</scope>
+       </dependency>
 
-		<!-- PROHIBIDO por la restricción de persistencia (no agregar nunca):
-             data-jpa, hibernate, h2, mysql, postgresql, mongodb -->
-	</dependencies>
+       <!-- PROHIBIDO por la restricción de persistencia (no agregar nunca):
+            data-jpa, hibernate, h2, mysql, postgresql, mongodb -->
+    </dependencies>
 
-	<build>
-		<plugins>
-			<plugin>
-				<groupId>org.springframework.boot</groupId>
-				<artifactId>spring-boot-maven-plugin</artifactId>
-			</plugin>
-			<plugin>
-				<groupId>org.apache.maven.plugins</groupId>
-				<artifactId>maven-compiler-plugin</artifactId>
-				<executions>
-					<execution>
-						<id>default-compile</id>
-						<phase>compile</phase>
-						<goals>
-							<goal>compile</goal>
-						</goals>
-						<configuration>
-							<annotationProcessorPaths>
-								<path>
-									<groupId>org.projectlombok</groupId>
-									<artifactId>lombok</artifactId>
-								</path>
-							</annotationProcessorPaths>
-						</configuration>
-					</execution>
-					<execution>
-						<id>default-testCompile</id>
-						<phase>test-compile</phase>
-						<goals>
-							<goal>testCompile</goal>
-						</goals>
-						<configuration>
-							<annotationProcessorPaths>
-								<path>
-									<groupId>org.projectlombok</groupId>
-									<artifactId>lombok</artifactId>
-								</path>
-							</annotationProcessorPaths>
-						</configuration>
-					</execution>
-				</executions>
-			</plugin>
-		</plugins>
-	</build>
+    <build>
+       <plugins>
+          <plugin>
+             <groupId>org.springframework.boot</groupId>
+             <artifactId>spring-boot-maven-plugin</artifactId>
+          </plugin>
+          <plugin>
+             <groupId>org.apache.maven.plugins</groupId>
+             <artifactId>maven-compiler-plugin</artifactId>
+             <executions>
+                <execution>
+                   <id>default-compile</id>
+                   <phase>compile</phase>
+                   <goals>
+                      <goal>compile</goal>
+                   </goals>
+                   <configuration>
+                      <annotationProcessorPaths>
+                         <path>
+                            <groupId>org.projectlombok</groupId>
+                            <artifactId>lombok</artifactId>
+                         </path>
+                      </annotationProcessorPaths>
+                   </configuration>
+                </execution>
+                <execution>
+                   <id>default-testCompile</id>
+                   <phase>test-compile</phase>
+                   <goals>
+                      <goal>testCompile</goal>
+                   </goals>
+                   <configuration>
+                      <annotationProcessorPaths>
+                         <path>
+                            <groupId>org.projectlombok</groupId>
+                            <artifactId>lombok</artifactId>
+                         </path>
+                      </annotationProcessorPaths>
+                   </configuration>
+                </execution>
+             </executions>
+          </plugin>
+       </plugins>
+    </build>
 
 </project>

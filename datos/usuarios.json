@@ -12,4 +12,22 @@
   "claveHash" : "$2a$10$yPnkJU7pn.xGlmillfe1n.7JcIJ/DFjSuvcWEw0pAj9QhVlK3UoJ.",
   "rol" : "GESTOR",
   "fechaCreacion" : "2026-10-31T16:02:22.305030400Z"
+}, {
+  "id" : "d41823a3-0984-44eb-8c4b-c31c2fcf9ac9",
+  "nombre" : "María Pérez",
+  "correo" : "intruso{{$timestamp}}@correo.com",
+  "claveHash" : "$2a$10$4bJqmkb70kkq9ugizxaGee28Oytnn.jJZ6X4ved3BfijwjmPt5wHC",
+  "telefono" : "04121234567",
+  "direccion" : "Av. Principal, Caracas",
+  "rol" : "CLIENTE",
+  "fechaCreacion" : "2026-11-03T01:32:24.413679982Z"
+}, {
+  "id" : "2a923532-b796-432a-81a6-d8f5ed233fb6",
+  "nombre" : "María Pérez",
+  "correo" : "cliente1@correo.com",
+  "claveHash" : "$2a$10$68V6haWehK5YbFuiHjliOePk13/V1xkXZKVSjkb6L./9lgkuBIv2S",
+  "telefono" : "04121234567",
+  "direccion" : "Av. Principal, Caracas",
+  "rol" : "CLIENTE",
+  "fechaCreacion" : "2026-11-03T01:38:51.475163208Z"
 } ]

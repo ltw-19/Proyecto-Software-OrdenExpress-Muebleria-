@@ -47,7 +47,8 @@ public class ConfiguracionSeguridad {
                 .authorizeHttpRequests(reglas -> reglas
                         .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()   // pre-vuelo de CORS
                         .requestMatchers("/error").permitAll()
-                        .requestMatchers("/api/cuentas/ingresar").permitAll()
+                        // Rutas públicas (solo POST): iniciar sesión y crear cuenta.
+                        .requestMatchers(HttpMethod.POST, "/api/cuentas/ingresar", "/api/cuentas/registro").permitAll()
                         .anyRequest().authenticated())
                 // Respuestas de error en JSON y en español (mismo formato que ManejadorGlobalExcepciones).
                 .exceptionHandling(e -> e

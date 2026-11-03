@@ -17,7 +17,7 @@ import java.util.List;
  * Se ejecuta en CADA petición. Lee la cabecera "Authorization: Bearer <token>",
  * valida el token y, si es válido, deja registrado quién es el usuario y su rol.
  *
- * Si no hay token o es inválido, no registra a nadie y Spring Security responde 401 -> No autorizado.
+ * Si no hay token o es inválido, no registra a nadie y Spring Security responde 401.
  *
  * Ojo: NO tiene @Component a propósito. Se crea manualmente en ConfiguracionSeguridad
  * para que Spring Boot no lo registre dos veces.
