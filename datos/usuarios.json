@@ -73,4 +73,13 @@
   "direccion" : "Av. Principal, Caracas",
   "rol" : "CLIENTE",
   "fechaCreacion" : "2026-11-05T01:32:28.094165757Z"
+}, {
+  "id" : "181662a4-64ca-4290-b47a-8db06c2a3b9f",
+  "nombre" : "Cliente",
+  "apellido" : "Prueba",
+  "correo" : "cliente1793879578229@correo.com",
+  "claveHash" : "$2a$10$Mzpb/Jj/qw14dud8pgx2kevtaSKbKayw6AawMiqqr/BvYLmpyQXnC",
+  "telefono" : "04121234567",
+  "rol" : "CLIENTE",
+  "fechaCreacion" : "2026-11-05T11:52:58.452719200Z"
 } ]

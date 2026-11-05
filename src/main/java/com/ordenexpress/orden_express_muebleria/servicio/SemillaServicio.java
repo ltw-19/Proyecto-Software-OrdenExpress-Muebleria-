@@ -89,30 +89,39 @@ public class SemillaServicio implements ApplicationRunner {
         if (!sistemaNuevo || !muebleRepositorio.listar().isEmpty()) {
             return;
         }
+        // Los mismos 6 muebles de los mockups (inventario). Medidas en cm: ancho, alto, profundidad.
         muebleRepositorio.guardarTodos(List.of(
-                mueble("Sofá Milán 3 puestos", "Sala", "210", "85", "95",
-                        "Madera de pino y tela antimanchas", "480.00"),
-                mueble("Mesa de centro Nogal", "Sala", "110", "45", "60",
-                        "Madera de nogal", "135.00"),
-                mueble("Comedor Roma 6 puestos", "Comedor", "180", "78", "90",
-                        "Roble macizo", "620.00"),
-                mueble("Cama Queen Aurora", "Dormitorio", "160", "110", "210",
-                        "MDF enchapado y madera", "390.00"),
-                mueble("Escritorio Ejecutivo Lima", "Oficina", "140", "75", "70",
-                        "Melamina y estructura metálica", "210.00"),
-                mueble("Biblioteca Cedro 5 niveles", "Oficina", "90", "180", "35",
-                        "Madera de cedro", "175.00")));
+                mueble("M-001", "Sofá Alba", "Sala",
+                        "Sofá de tres puestos tapizado en lino beige, con estructura y patas de madera de nogal. "
+                                + "Una pieza cómoda y atemporal para tu sala.",
+                        "210", "82", "90", "Lino beige y madera de nogal", "480.00", 8),
+                mueble("M-002", "Butaca Nido", "Sala",
+                        "Butaca de brazos en madera de nogal con cojines de lino claro. Ideal para un rincón de lectura.",
+                        "78", "84", "80", "Madera de nogal y lino", "180.00", 12),
+                mueble("M-003", "Mesa de centro Olmo", "Sala",
+                        "Mesa de centro baja de líneas suaves, con patas redondeadas y acabado cálido.",
+                        "110", "40", "60", "Madera de olmo", "220.00", 6),
+                mueble("M-004", "Cama Serena", "Dormitorio",
+                        "Cama con cabecero tapizado en lino y base de madera. Una pieza sobria para un dormitorio tranquilo.",
+                        "160", "100", "200", "Madera de nogal y lino", "650.00", 4),
+                mueble("M-005", "Aparador Roble", "Comedor",
+                        "Aparador de tres puertas en roble, con patas inclinadas y mucho espacio de guardado.",
+                        "160", "75", "42", "Madera de roble", "390.00", 5),
+                mueble("M-006", "Mesa auxiliar Lía", "Sala",
+                        "Mesa auxiliar redonda de base cilíndrica, perfecta junto al sofá o la cama.",
+                        "45", "52", "45", "Madera de nogal", "95.00", 10)));
         registro.info("Sistema nuevo: se cargaron 6 muebles de ejemplo en muebles.json.");
     }
 
-    private Mueble mueble(String nombre, String categoria, String ancho, String alto, String profundidad,
-                          String material, String precioUsd) {
+    private Mueble mueble(String codigo, String nombre, String categoria, String descripcion,
+                          String ancho, String alto, String profundidad,
+                          String material, String precioUsd, int unidades) {
         // Foto de relleno con los colores de la marca. Reemplázalas por fotos reales cuando las tengan.
         String texto = URLEncoder.encode(sinTildes(nombre), StandardCharsets.UTF_8);
         String urlFoto = "https://placehold.co/600x400/8D6E63/FFFFFF/png?text=" + texto;
-        return new Mueble(UUID.randomUUID().toString(), nombre, categoria,
+        return new Mueble(UUID.randomUUID().toString(), codigo, nombre, categoria, descripcion,
                 new Mueble.Dimensiones(new BigDecimal(ancho), new BigDecimal(alto), new BigDecimal(profundidad)),
-                material, urlFoto, new BigDecimal(precioUsd));
+                material, urlFoto, new BigDecimal(precioUsd), unidades);
     }
 
     private static String sinTildes(String texto) {
