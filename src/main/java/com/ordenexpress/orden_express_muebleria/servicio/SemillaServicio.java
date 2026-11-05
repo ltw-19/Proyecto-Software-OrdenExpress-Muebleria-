@@ -73,6 +73,7 @@ public class SemillaServicio implements ApplicationRunner {
         return new Usuario(
                 UUID.randomUUID().toString(),
                 entorno.getRequiredProperty(base + "nombre"),
+                entorno.getRequiredProperty(base + "apellido"),
                 entorno.getRequiredProperty(base + "correo").trim().toLowerCase(Locale.ROOT),
                 codificador.encode(entorno.getRequiredProperty(base + "clave")), // nunca texto plano
                 null,

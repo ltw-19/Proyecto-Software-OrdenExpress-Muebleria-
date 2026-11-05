@@ -7,10 +7,12 @@ import java.time.Instant;
  * La contraseña NUNCA se guarda en texto plano: solo el hash BCrypt (claveHash).
  * telefono y direccion pueden ser null (los usuarios semilla no los tienen) y,
  * si lo son, simplemente no se escriben en el JSON.
+ * apellido es null en las cuentas creadas antes de existir ese campo.
  */
 public record Usuario(
         String id,
         String nombre,
+        String apellido,
         String correo,
         String claveHash,
         String telefono,

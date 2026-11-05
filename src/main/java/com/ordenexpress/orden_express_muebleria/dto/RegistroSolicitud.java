@@ -14,6 +14,9 @@ public record RegistroSolicitud(
         @NotBlank(message = "El nombre es obligatorio.")
         @Size(max = 100, message = "El nombre admite máximo 100 caracteres.") String nombre,
 
+        @NotBlank(message = "El apellido es obligatorio.")
+        @Size(max = 100, message = "El apellido admite máximo 100 caracteres.") String apellido,
+
         @NotBlank(message = "El correo es obligatorio.")
         @Size(max = 100, message = "El correo admite máximo 100 caracteres.")
         @Pattern(regexp = "^$|^[^@\\s]+@[^@\\s]+\\.[^@\\s]+$", message = "El correo no tiene un formato válido.")

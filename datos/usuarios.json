@@ -1,8 +1,11 @@
 [ {
   "id" : "03232cf7-57f5-49cd-bc20-e9ceef8eebd2",
   "nombre" : "Administrador",
+  "apellido" : "OrdenExpress",
   "correo" : "admin@ordenexpress.com",
   "claveHash" : "$2a$10$uJiEsHoSqk6h8Q/tDfzP9ufeWJ51TPDIDCPvYErYmsdWi7pppnG5C",
+  "telefono" : "04140000000",
+  "direccion" : "Oficina central",
   "rol" : "ADMIN",
   "fechaCreacion" : "2026-10-31T16:02:22.249511300Z"
 }, {
@@ -30,4 +33,44 @@
   "direccion" : "Av. Principal, Caracas",
   "rol" : "CLIENTE",
   "fechaCreacion" : "2026-11-03T01:38:51.475163208Z"
+}, {
+  "id" : "dfe442ee-d7ec-473f-a7ac-d3996e2246e9",
+  "nombre" : "Maria",
+  "apellido" : "Perez",
+  "correo" : "mariaperez@gmail.com",
+  "claveHash" : "$2a$10$MeoujIBLqVbXkihEo1WIw.X3FVM8RwAc2btS/R.SLuK9VjEJnLWhq",
+  "telefono" : "04121234567",
+  "direccion" : "Av. Principal, Caracas",
+  "rol" : "CLIENTE",
+  "fechaCreacion" : "2026-11-05T01:12:58.473909464Z"
+}, {
+  "id" : "53d79ffd-abdb-4702-a88d-8d01af588c12",
+  "nombre" : "Maria",
+  "apellido" : "Perez",
+  "correo" : "lol@gmail.com",
+  "claveHash" : "$2a$10$ixsYOGEBhMcvyWH8YSNyOuoST3ABpmAi8.uEP/1cITbh7rWs7yaRa",
+  "telefono" : "04121234567",
+  "direccion" : "Av. Principal, Caracas",
+  "rol" : "CLIENTE",
+  "fechaCreacion" : "2026-11-05T01:17:08.291010960Z"
+}, {
+  "id" : "f9d62a0b-ee6f-428f-83eb-7acfe06306dd",
+  "nombre" : "Maria",
+  "apellido" : "Lopez",
+  "correo" : "vivien_rempel@yahoo.com",
+  "claveHash" : "$2a$10$FdY.kjlmDPDgp0gHgCLw..PAXtCuW6L.ZkNepT0Oc6paEcqcJydpu",
+  "telefono" : "04149998877",
+  "direccion" : "Av. Los Samanes, Caracas",
+  "rol" : "CLIENTE",
+  "fechaCreacion" : "2026-11-05T01:31:29.168599892Z"
+}, {
+  "id" : "c42768e1-67cd-4ecf-8e46-1a625b6e21a2",
+  "nombre" : "Maria",
+  "apellido" : "Perez",
+  "correo" : "hettie34@gmail.com",
+  "claveHash" : "$2a$10$Rzw4rrNkwb2JWjxZFZbR0ul9g5DT7N9HFyRcRTM6zPoaFIapahcRe",
+  "telefono" : "04121234567",
+  "direccion" : "Av. Principal, Caracas",
+  "rol" : "CLIENTE",
+  "fechaCreacion" : "2026-11-05T01:32:28.094165757Z"
 } ]

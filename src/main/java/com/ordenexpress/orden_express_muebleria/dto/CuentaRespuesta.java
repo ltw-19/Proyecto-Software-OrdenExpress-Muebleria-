@@ -4,8 +4,8 @@ import com.ordenexpress.orden_express_muebleria.modelo.Rol;
 
 /**
  * Datos de una cuenta tal como los ve el navegador.
- * Nunca incluye claveHash. Se reutilizará en Modificar Cuenta y Consultar Cuenta.
+ * Nunca incluye claveHash.
  */
-public record CuentaRespuesta(String id, String nombre, String correo, String telefono,
-                              String direccion, Rol rol) {
+public record CuentaRespuesta(String id, String nombre, String apellido, String correo,
+                              String telefono, String direccion, Rol rol) {
 }
