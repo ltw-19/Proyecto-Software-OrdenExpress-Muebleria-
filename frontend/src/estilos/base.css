@@ -1,0 +1,265 @@
+@import './variables.css';
+
+*, *::before, *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html, body {
+  min-height: 100%;
+  font-family: var(--fuente-principal);
+  background-color: var(--color-fondo);
+  color: var(--color-texto-principal);
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+}
+
+a {
+  color: var(--color-nogal-primario);
+  text-decoration: none;
+  font-weight: 500;
+  transition: color 0.2s ease;
+}
+
+a:hover {
+  color: var(--color-nogal-secundario);
+  text-decoration: underline;
+}
+
+/* Contenedor principal responsive */
+.contenedor {
+  width: 100%;
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 1.25rem;
+}
+
+/* Tarjetas */
+.tarjeta {
+  background-color: var(--color-superficie);
+  border-radius: var(--radio-tarjeta);
+  border: 1px solid var(--color-borde);
+  box-shadow: var(--sombra-suave);
+  padding: 1.5rem;
+  transition: box-shadow 0.2s ease;
+}
+
+/* Encabezados */
+h1, h2, h3, h4, h5 {
+  color: var(--color-nogal-primario);
+  font-weight: 600;
+  line-height: 1.25;
+}
+
+h1 { font-size: 1.75rem; margin-bottom: 0.5rem; }
+h2 { font-size: 1.35rem; margin-bottom: 0.5rem; }
+h3 { font-size: 1.15rem; margin-bottom: 0.5rem; }
+
+p {
+  color: var(--color-texto-secundario);
+  margin-bottom: 0.75rem;
+}
+
+/* Formularios */
+.formulario {
+  display: flex;
+  flex-direction: column;
+  gap: 1.1rem;
+}
+
+.grupo-campo {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  text-align: left;
+}
+
+.etiqueta {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--color-texto-principal);
+}
+
+.etiqueta .requerido {
+  color: var(--color-error);
+}
+
+.campo-texto,
+.campo-selector,
+.campo-area {
+  width: 100%;
+  padding: 0.65rem 0.85rem;
+  border: 1px solid var(--color-borde);
+  border-radius: var(--radio-control);
+  font-family: inherit;
+  font-size: 0.95rem;
+  color: var(--color-texto-principal);
+  background-color: var(--color-superficie);
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.campo-texto:focus,
+.campo-selector:focus,
+.campo-area:focus {
+  outline: none;
+  border-color: var(--color-borde-foco);
+  box-shadow: 0 0 0 3px rgba(141, 110, 99, 0.2);
+}
+
+.campo-texto.con-error,
+.campo-selector.con-error {
+  border-color: var(--color-error);
+}
+
+.texto-error {
+  font-size: 0.8rem;
+  color: var(--color-error);
+  margin-top: 0.15rem;
+}
+
+.texto-ayuda {
+  font-size: 0.8rem;
+  color: var(--color-texto-mutado);
+}
+
+/* Botones */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 0.7rem 1.25rem;
+  font-family: inherit;
+  font-size: 0.95rem;
+  font-weight: 600;
+  border-radius: var(--radio-control);
+  border: 1px solid transparent;
+  cursor: pointer;
+  transition: background-color 0.2s ease, border-color 0.2s ease, opacity 0.2s ease, transform 0.1s ease;
+  text-decoration: none;
+}
+
+.btn:active {
+  transform: scale(0.98);
+}
+
+.btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.btn-primario {
+  background-color: var(--color-nogal-primario);
+  color: var(--color-texto-inverso);
+}
+
+.btn-primario:hover:not(:disabled) {
+  background-color: var(--color-nogal-secundario);
+}
+
+.btn-secundario {
+  background-color: var(--color-nogal-fondo);
+  color: var(--color-nogal-primario);
+  border-color: var(--color-nogal-claro);
+}
+
+.btn-secundario:hover:not(:disabled) {
+  background-color: var(--color-nogal-claro);
+}
+
+.btn-outline {
+  background-color: transparent;
+  color: var(--color-nogal-primario);
+  border-color: var(--color-nogal-primario);
+}
+
+.btn-outline:hover:not(:disabled) {
+  background-color: var(--color-nogal-fondo);
+}
+
+.btn-peligro {
+  background-color: var(--color-error);
+  color: #FFFFFF;
+}
+
+.btn-peligro:hover:not(:disabled) {
+  background-color: #B71C1C;
+}
+
+/* Botón especial EXCLUSIVO WhatsApp */
+.btn-whatsapp {
+  background-color: var(--color-whatsapp);
+  color: #FFFFFF;
+}
+
+.btn-whatsapp:hover:not(:disabled) {
+  background-color: var(--color-whatsapp-hover);
+}
+
+/* Insignias de roles */
+.insignia {
+  display: inline-block;
+  padding: 0.25rem 0.6rem;
+  border-radius: 999px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.insignia-admin {
+  background-color: #EDE7F6;
+  color: #512DA8;
+}
+
+.insignia-gestor {
+  background-color: #E0F2F1;
+  color: #00695C;
+}
+
+.insignia-cliente {
+  background-color: #E3F2FD;
+  color: #1565C0;
+}
+
+/* Alertas */
+.alerta {
+  padding: 0.9rem 1.1rem;
+  border-radius: var(--radio-control);
+  font-size: 0.9rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  margin-bottom: 1rem;
+}
+
+.alerta-error {
+  background-color: var(--color-error-fondo);
+  color: var(--color-error);
+  border: 1px solid #FFCDD2;
+}
+
+.alerta-exito {
+  background-color: var(--color-exito-fondo);
+  color: var(--color-exito);
+  border: 1px solid #C8E6C9;
+}
+
+.alerta-aviso {
+  background-color: var(--color-aviso-fondo);
+  color: var(--color-aviso);
+  border: 1px solid #FFE0B2;
+}
+
+/* Responsiveness helpers */
+@media (max-width: 768px) {
+  .contenedor {
+    padding: 0.75rem;
+  }
+  .tarjeta {
+    padding: 1.1rem;
+  }
+}

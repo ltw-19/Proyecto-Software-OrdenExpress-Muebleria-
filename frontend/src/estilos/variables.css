@@ -1,0 +1,46 @@
+:root {
+  /* Paleta oficial de OrdenExpress Mueblería */
+  --color-fondo: #FAFAFA;
+  --color-superficie: #FFFFFF;
+  --color-nogal-primario: #5D4037;
+  --color-nogal-secundario: #8D6E63;
+  --color-nogal-claro: #D7CCC8;
+  --color-nogal-fondo: #EFEBE9;
+  
+  /* Textos y contrastes (mínimo 4.5:1) */
+  --color-texto-principal: #212529;
+  --color-texto-secundario: #555555;
+  --color-texto-mutado: #717171;
+  --color-texto-inverso: #FFFFFF;
+  
+  /* Bordes y sombras */
+  --color-borde: #E0E0E0;
+  --color-borde-foco: #8D6E63;
+  --radio-tarjeta: 12px;
+  --radio-control: 8px;
+  --sombra-suave: 0 4px 12px rgba(0, 0, 0, 0.07);
+  --sombra-elevada: 0 8px 24px rgba(0, 0, 0, 0.12);
+  
+  /* Estados del sistema */
+  --color-exito: #2E7D32;
+  --color-exito-fondo: #E8F5E9;
+  --color-error: #C62828;
+  --color-error-fondo: #FFEBEE;
+  --color-aviso: #E65100;
+  --color-aviso-fondo: #FFF3E0;
+  
+  /* Estados de pedidos */
+  --color-estado-pendiente: #F57F17;
+  --color-estado-pendiente-fondo: #FFF8E1;
+  --color-estado-aprobado: #2E7D32;
+  --color-estado-aprobado-fondo: #E8F5E9;
+  --color-estado-rechazado: #C62828;
+  --color-estado-rechazado-fondo: #FFEBEE;
+  
+  /* Verde #25D366 reservado EXCLUSIVAMENTE para Enviar Pedido a WhatsApp */
+  --color-whatsapp: #25D366;
+  --color-whatsapp-hover: #20BA5A;
+  
+  /* Tipografía */
+  --fuente-principal: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+}
