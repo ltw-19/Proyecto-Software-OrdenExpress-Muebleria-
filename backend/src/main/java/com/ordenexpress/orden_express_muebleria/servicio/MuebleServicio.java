@@ -2,23 +2,26 @@ package com.ordenexpress.orden_express_muebleria.servicio;
 
 import com.ordenexpress.orden_express_muebleria.dto.MuebleRespuesta;
 import com.ordenexpress.orden_express_muebleria.dto.MuebleSolicitud;
+import com.ordenexpress.orden_express_muebleria.excepcion.ExcepcionNegocio;
 import com.ordenexpress.orden_express_muebleria.modelo.Mueble;
-import com.ordenexpress.orden_express_muebleria.modelo.Rol;
 import com.ordenexpress.orden_express_muebleria.repositorio.MuebleRepositorio;
-import com.ordenexpress.orden_express_muebleria.seguridad.UsuarioAutenticado;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
 import java.math.RoundingMode;
 import java.text.Normalizer;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
+import java.util.TreeMap;
 import java.util.UUID;
 
-/**
- * Lógica de la épica Gestionar Mueble: Registrar Mueble y Consultar Mueble (Catálogo).
- */
+/** Lógica de la épica Gestionar Mueble: Registrar Mueble y Consultar Mueble. */
 @Service
 public class MuebleServicio {
+
+    private static final int MAXIMO_BUSQUEDA = 100;
 
     private final MuebleRepositorio muebleRepositorio;
     private final ConversionMonedaServicio conversionMoneda;
@@ -27,6 +30,10 @@ public class MuebleServicio {
         this.muebleRepositorio = muebleRepositorio;
         this.conversionMoneda = conversionMoneda;
     }
+
+    // ------------------------------------------------------------------
+    // Registrar Mueble
+    // ------------------------------------------------------------------
 
     /**
      * Historia: REGISTRAR MUEBLE (ADMIN, GESTOR).
@@ -53,68 +60,89 @@ public class MuebleServicio {
                 solicitud.precioUsd().setScale(2, RoundingMode.HALF_UP),
                 solicitud.unidades()));
 
+        // Quien registra es ADMIN o GESTOR: puede ver las unidades.
         return aRespuesta(guardado, true);
     }
 
+    // ------------------------------------------------------------------
+    // Consultar Mueble
+    // ------------------------------------------------------------------
+
     /**
-     * Historia: CONSULTAR MUEBLE / CATÁLOGO (TODOS).
+     * Historia: CONSULTAR MUEBLE (todos los roles). Devuelve el catálogo con precio bimonetario.
      * Algoritmo:
-     *  1. Lee los muebles de muebles.json a través del repositorio.
-     *  2. Aplica filtro opcional de categoría exacta (ignorando mayúsculas/minúsculas).
-     *  3. Aplica filtro opcional de búsqueda textual insensible a mayúsculas y acentos sobre:
-     *     nombre, descripción, material, código y categoría.
-     *  4. Transforma cada mueble a MuebleRespuesta:
-     *     - Calcula precioBs según la tasa BCV oficial.
-     *     - Fija "disponible" según el stock (unidades > 0).
-     *     - Solo incluye el número de "unidades" si el usuario tiene rol ADMIN o GESTOR.
+     *  1. Rechaza búsquedas de más de 100 caracteres.
+     *  2. Lee todos los muebles de muebles.json.
+     *  3. Si viene "categoria", se queda solo con los de esa categoría (sin importar mayúsculas ni tildes).
+     *  4. Si viene "busqueda", la separa en palabras y se queda con los muebles que contengan TODAS
+     *     las palabras en su nombre, código, material o descripción (sin importar mayúsculas ni tildes).
+     *  5. Convierte cada mueble a su respuesta: calcula los bolívares y decide qué mostrar del stock.
+     *
+     * @param verUnidades true para ADMIN y GESTOR (ven la cifra); false para el CLIENTE (solo ve si hay).
      */
-    public List<MuebleRespuesta> consultarMuebles(String busqueda, String categoria, UsuarioAutenticado usuario) {
-        boolean puedeVerStock = usuario != null && (usuario.rol() == Rol.ADMIN || usuario.rol() == Rol.GESTOR);
-        boolean filtrarCategoria = categoria != null && !categoria.isBlank() && !categoria.equalsIgnoreCase("TODAS");
-        boolean filtrarBusqueda = busqueda != null && !busqueda.isBlank();
-        String termino = filtrarBusqueda ? normalizar(busqueda) : "";
+    public List<MuebleRespuesta> consultar(String busqueda, String categoria, boolean verUnidades) {
+        if (busqueda != null && busqueda.length() > MAXIMO_BUSQUEDA) {
+            throw new ExcepcionNegocio(HttpStatus.BAD_REQUEST, "La búsqueda admite máximo 100 caracteres.");
+        }
+        String categoriaBuscada = normalizar(categoria);
+        List<String> terminos = separarTerminos(busqueda);
 
         return muebleRepositorio.listar().stream()
-                .filter(mueble -> {
-                    if (filtrarCategoria && (mueble.categoria() == null
-                            || !mueble.categoria().trim().equalsIgnoreCase(categoria.trim()))) {
-                        return false;
-                    }
-                    if (filtrarBusqueda) {
-                        String nombre = normalizar(mueble.nombre());
-                        String desc = normalizar(mueble.descripcion());
-                        String mat = normalizar(mueble.material());
-                        String cod = normalizar(mueble.codigo());
-                        String cat = normalizar(mueble.categoria());
-                        return nombre.contains(termino)
-                                || desc.contains(termino)
-                                || mat.contains(termino)
-                                || cod.contains(termino)
-                                || cat.contains(termino);
-                    }
-                    return true;
-                })
-                .map(mueble -> aRespuesta(mueble, puedeVerStock))
+                .filter(m -> categoriaBuscada.isEmpty() || normalizar(m.categoria()).equals(categoriaBuscada))
+                .filter(m -> coincide(m, terminos))
+                .map(m -> aRespuesta(m, verUnidades))
                 .toList();
     }
 
     /**
-     * Obtiene la lista de nombres únicos de categorías registradas en muebles.json, ordenadas alfabéticamente.
+     * Categorías distintas, ordenadas alfabéticamente, para llenar el filtro del catálogo.
+     * "Sala" y "sala" cuentan como la misma categoría (se muestra la primera escritura encontrada).
      */
     public List<String> listarCategorias() {
-        return muebleRepositorio.listar().stream()
-                .map(Mueble::categoria)
-                .filter(c -> c != null && !c.isBlank())
-                .map(String::trim)
-                .distinct()
-                .sorted(String.CASE_INSENSITIVE_ORDER)
-                .toList();
+        Map<String, String> unicas = new TreeMap<>();
+        for (Mueble mueble : muebleRepositorio.listar()) {
+            if (mueble.categoria() != null && !mueble.categoria().isBlank()) {
+                unicas.putIfAbsent(normalizar(mueble.categoria()), mueble.categoria().trim());
+            }
+        }
+        return List.copyOf(unicas.values());
     }
 
-    private MuebleRespuesta aRespuesta(Mueble mueble, boolean incluirStock) {
-        boolean disponible = mueble.unidades() != null && mueble.unidades() > 0;
-        Integer unidades = incluirStock ? mueble.unidades() : null;
+    // ------------------------------------------------------------------
+    // Utilidades
+    // ------------------------------------------------------------------
 
+    private static boolean coincide(Mueble mueble, List<String> terminos) {
+        if (terminos.isEmpty()) {
+            return true;
+        }
+        String texto = normalizar(valor(mueble.nombre()) + " " + valor(mueble.codigo()) + " "
+                + valor(mueble.material()) + " " + valor(mueble.descripcion()));
+        return terminos.stream().allMatch(texto::contains);
+    }
+
+    private static List<String> separarTerminos(String busqueda) {
+        String limpio = normalizar(busqueda);
+        return limpio.isEmpty() ? List.of() : Arrays.asList(limpio.split("\\s+"));
+    }
+
+    /** Minúsculas, sin tildes y sin espacios sobrantes: "Sofá " y "sofa" se vuelven iguales. */
+    private static String normalizar(String texto) {
+        if (texto == null) {
+            return "";
+        }
+        return Normalizer.normalize(texto, Normalizer.Form.NFD)
+                .replaceAll("\\p{M}", "")
+                .toLowerCase(Locale.ROOT)
+                .trim();
+    }
+
+    private static String valor(String texto) {
+        return texto == null ? "" : texto;
+    }
+
+    private MuebleRespuesta aRespuesta(Mueble mueble, boolean verUnidades) {
+        boolean disponible = mueble.unidades() != null && mueble.unidades() > 0;
         return new MuebleRespuesta(
                 mueble.id(),
                 mueble.codigo(),
@@ -125,16 +153,8 @@ public class MuebleServicio {
                 mueble.material(),
                 mueble.urlFoto(),
                 mueble.precioUsd(),
-                conversionMoneda.usdABolivares(mueble.precioUsd()),
+                conversionMoneda.usdABolivares(mueble.precioUsd()),   // Bs. calculados, nunca guardados
                 disponible,
-                unidades);
-    }
-
-    private static String normalizar(String texto) {
-        if (texto == null) {
-            return "";
-        }
-        String sinTildes = Normalizer.normalize(texto, Normalizer.Form.NFD).replaceAll("\\p{M}", "");
-        return sinTildes.trim().toLowerCase(Locale.ROOT);
+                verUnidades ? mueble.unidades() : null);              // el cliente nunca recibe la cifra
     }
 }
