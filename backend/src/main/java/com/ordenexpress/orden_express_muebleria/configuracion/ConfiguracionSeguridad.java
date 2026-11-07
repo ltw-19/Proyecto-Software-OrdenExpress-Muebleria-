@@ -69,16 +69,18 @@ public class ConfiguracionSeguridad {
         return new BCryptPasswordEncoder();
     }
 
-    /** Permite que el frontend Vue (otro puerto) llame a esta API. */
+    /** Permite que el frontend Vue (puerto 5173) llame a esta API sin bloqueos de CORS. */
     @Bean
-    public CorsConfigurationSource fuenteCors(@Value("${app.cors.origen}") String origenPermitido) {
+    public CorsConfigurationSource corsConfigurationSource(@Value("${app.cors.origen}") String origenPermitido) {
         CorsConfiguration configuracion = new CorsConfiguration();
-        configuracion.setAllowedOrigins(List.of(origenPermitido));
+        configuracion.setAllowedOriginPatterns(List.of("http://localhost:*", "http://127.0.0.1:*", origenPermitido));
         configuracion.setAllowedMethods(List.of("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"));
-        configuracion.setAllowedHeaders(List.of("Authorization", "Content-Type"));
+        configuracion.setAllowedHeaders(List.of("*"));
+        configuracion.setExposedHeaders(List.of("Authorization"));
+        configuracion.setMaxAge(3600L);
 
         UrlBasedCorsConfigurationSource fuente = new UrlBasedCorsConfigurationSource();
-        fuente.registerCorsConfiguration("/api/**", configuracion);
+        fuente.registerCorsConfiguration("/**", configuracion);
         return fuente;
     }
 

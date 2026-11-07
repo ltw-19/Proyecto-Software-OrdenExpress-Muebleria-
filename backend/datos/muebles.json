@@ -10,7 +10,7 @@
     "profundidad" : 90
   },
   "material" : "Lino beige y madera de nogal",
-  "urlFoto" : "https://placehold.co/600x400/8D6E63/FFFFFF/png?text=Sofa+Alba",
+  "urlFoto" : "https://images.unsplash.com/photo-1555041469-a586c61ea9bc?w=800&auto=format&fit=crop&q=80",
   "precioUsd" : 480.00,
   "unidades" : 8
 }, {
@@ -25,7 +25,7 @@
     "profundidad" : 80
   },
   "material" : "Madera de nogal y lino",
-  "urlFoto" : "https://placehold.co/600x400/8D6E63/FFFFFF/png?text=Butaca+Nido",
+  "urlFoto" : "https://images.unsplash.com/photo-1586023492125-27b2c045efd7?w=800&auto=format&fit=crop&q=80",
   "precioUsd" : 180.00,
   "unidades" : 12
 }, {
@@ -40,7 +40,7 @@
     "profundidad" : 60
   },
   "material" : "Madera de olmo",
-  "urlFoto" : "https://placehold.co/600x400/8D6E63/FFFFFF/png?text=Mesa+de+centro+Olmo",
+  "urlFoto" : "https://images.unsplash.com/photo-1532372320572-cda25653a26d?w=800&auto=format&fit=crop&q=80",
   "precioUsd" : 220.00,
   "unidades" : 6
 }, {
@@ -55,7 +55,7 @@
     "profundidad" : 200
   },
   "material" : "Madera de nogal y lino",
-  "urlFoto" : "https://placehold.co/600x400/8D6E63/FFFFFF/png?text=Cama+Serena",
+  "urlFoto" : "https://images.unsplash.com/photo-1505693416388-ac5ce068fe85?w=800&auto=format&fit=crop&q=80",
   "precioUsd" : 650.00,
   "unidades" : 4
 }, {
@@ -70,7 +70,7 @@
     "profundidad" : 42
   },
   "material" : "Madera de roble",
-  "urlFoto" : "https://placehold.co/600x400/8D6E63/FFFFFF/png?text=Aparador+Roble",
+  "urlFoto" : "https://images.unsplash.com/photo-1595428774223-ef52624120d2?w=800&auto=format&fit=crop&q=80",
   "precioUsd" : 390.00,
   "unidades" : 5
 }, {
@@ -85,7 +85,7 @@
     "profundidad" : 45
   },
   "material" : "Madera de nogal",
-  "urlFoto" : "https://placehold.co/600x400/8D6E63/FFFFFF/png?text=Mesa+auxiliar+Lia",
+  "urlFoto" : "https://images.unsplash.com/photo-1615066390971-03e4e1c36ddf?w=800&auto=format&fit=crop&q=80",
   "precioUsd" : 95.00,
   "unidades" : 10
 } ]

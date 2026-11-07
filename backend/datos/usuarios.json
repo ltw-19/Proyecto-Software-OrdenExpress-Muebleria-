@@ -14,4 +14,14 @@
   "claveHash" : "$2a$10$zI.9i62xUpjTN1bqpEc1beBbB40gFKKGm0Annqch00nc2LeR.6aS.",
   "rol" : "GESTOR",
   "fechaCreacion" : "2026-11-06T05:34:51.558783600Z"
-} ]
+}, {
+  "id" : "d1341a09-7884-4acc-adea-49b1d513112d",
+  "nombre" : "Carlos",
+  "apellido" : "Cliente",
+  "correo" : "cliente.test@ordenexpress.com",
+  "claveHash" : "$2a$10$2/tFMl8o2pszGK.8bgCtdOleVLHD/sVUzlBEU6ubKTOScnW9KrnGa",
+  "telefono" : "04141234567",
+  "rol" : "CLIENTE",
+  "fechaCreacion" : "2026-11-07T00:29:42.271661477Z"
+}
+]

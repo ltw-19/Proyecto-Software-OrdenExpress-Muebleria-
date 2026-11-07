@@ -75,10 +75,10 @@ Una guarda de ruta redirige al ingreso si no hay sesión y bloquea según el rol
 - [x] **Crear cuenta:** Vista VistaRegistro.vue con validación 100% en cliente, limpieza de teléfono y redirección tras 201.
 - [x] **Datos personales:** Vista VistaDatosPersonales.vue (ADMIN y CLIENTE, GESTOR bloqueado).
 - [x] **Gestión de roles:** Vista VistaGestionRoles.vue (ADMIN, sin poder cambiar el propio, versión de tabla y tarjetas para móvil).
+- [x] **Catálogo de muebles:** Vista VistaCatalogo.vue y componente TarjetaMueble.vue (búsqueda con debounce, filtro de categorías, precios bimonetarios con Intl.NumberFormat, visibilidad de stock por rol y selector de cantidad para cliente).
+- [x] **Inventario / Registrar mueble:** Vista VistaInventario.vue (ADMIN y GESTOR, tabla de stock y tarjetas móviles, modal de registro de mueble con vista previa de foto, validación al 100%).
 
-## Pendiente (Historias de tu compañero y Sprint 1 restante)
-- [ ] Catálogo de muebles (VistaCatalogo.vue, búsqueda y categorías).
-- [ ] Inventario / Registrar mueble (ADMIN, GESTOR).
+## Pendiente (Historias del Sprint 1 restante)
 - [ ] Carrito (CLIENTE) - *Pendiente de endpoint en backend*.
 - [ ] Mis pedidos (CLIENTE) - *Pendiente de endpoint en backend*.
 - [ ] Pedidos recibidos y detalle (ADMIN, GESTOR) - *Pendiente de endpoint en backend*.

@@ -7,6 +7,7 @@ import VistaRegistro from '../vistas/VistaRegistro.vue'
 import VistaDatosPersonales from '../vistas/VistaDatosPersonales.vue'
 import VistaGestionRoles from '../vistas/VistaGestionRoles.vue'
 import VistaCatalogo from '../vistas/VistaCatalogo.vue'
+import VistaInventario from '../vistas/VistaInventario.vue'
 import VistaNoAutorizado from '../vistas/VistaNoAutorizado.vue'
 
 const routes = [
@@ -33,6 +34,15 @@ const routes = [
     name: 'Catalogo',
     component: VistaCatalogo,
     meta: { requiereAutenticacion: true }
+  },
+  {
+    path: '/inventario',
+    name: 'Inventario',
+    component: VistaInventario,
+    meta: {
+      requiereAutenticacion: true,
+      roles: ['ADMIN', 'GESTOR']
+    }
   },
   {
     path: '/perfil',
