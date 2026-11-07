@@ -53,4 +53,4 @@ Siempre `{"mensaje": "..."}`: 400 validación, 401 sin sesión, 403 sin permiso,
 Al cerrar cada historia se entrega: **Interfaz Humano-Máquina**, **Arquitectura**, **Estructura de datos** y **Algoritmo**. Backend y frontend documentan cada uno su parte.
 
 ## Pendiente (global)
-Tasa automática, Carrito, Pedido completo y todo el frontend. *Actualiza esta sección al cerrar cada historia.*
+Tasa automática, Carrito (falta eliminar ítem), Pedido completo y todo el frontend. *Actualiza esta sección al cerrar cada historia.*

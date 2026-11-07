@@ -1,0 +1,899 @@
+{
+  "info": {
+    "name": "OrdenExpress - Modulo Carrito",
+    "description": "Pruebas de integracion para la historia Anadir item al Carrito (POST /api/carrito/items). Ejecutar en orden con el backend en el puerto 8080.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:8080"
+    },
+    {
+      "key": "token_admin",
+      "value": ""
+    },
+    {
+      "key": "token_cliente",
+      "value": ""
+    },
+    {
+      "key": "correo_cliente",
+      "value": ""
+    },
+    {
+      "key": "id_mueble",
+      "value": ""
+    },
+    {
+      "key": "precio_mueble",
+      "value": ""
+    },
+    {
+      "key": "id_mueble_2",
+      "value": ""
+    },
+    {
+      "key": "cantidad_excedida",
+      "value": ""
+    }
+  ],
+  "item": [
+    {
+      "name": "1. Registrar CLIENTE nuevo para la prueba",
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "exec": [
+              "// Correo unico en cada corrida para que la coleccion se pueda repetir.",
+              "pm.collectionVariables.set(\"correo_cliente\", \"cliente.carrito.\" + Date.now() + \"@ordenexpress.com\");"
+            ],
+            "type": "text/javascript"
+          }
+        },
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test(\"Status code is 201 Created\", function () {",
+              "    pm.response.to.have.status(201);",
+              "});",
+              "pm.test(\"La cuenta nueva es CLIENTE\", function () {",
+              "    pm.expect(pm.response.json().rol).to.eql(\"CLIENTE\");",
+              "});"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/cuentas/registro",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "cuentas",
+            "registro"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"nombre\": \"Cliente\",\n  \"apellido\": \"Carrito\",\n  \"correo\": \"{{correo_cliente}}\",\n  \"clave\": \"Cliente123*\",\n  \"telefono\": \"04121234567\"\n}"
+        }
+      }
+    },
+    {
+      "name": "2. Iniciar Sesion como CLIENTE",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test(\"Status code is 200 OK\", function () {",
+              "    pm.response.to.have.status(200);",
+              "});",
+              "var jsonData = pm.response.json();",
+              "pm.test(\"Token presente y rol CLIENTE\", function () {",
+              "    pm.expect(jsonData.token).to.be.a(\"string\");",
+              "    pm.expect(jsonData.rol).to.eql(\"CLIENTE\");",
+              "    pm.collectionVariables.set(\"token_cliente\", jsonData.token);",
+              "});"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/cuentas/ingresar",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "cuentas",
+            "ingresar"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"correo\": \"{{correo_cliente}}\",\n  \"clave\": \"Cliente123*\"\n}"
+        }
+      }
+    },
+    {
+      "name": "3. Iniciar Sesion como ADMIN",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test(\"Status code is 200 OK\", function () {",
+              "    pm.response.to.have.status(200);",
+              "});",
+              "var jsonData = pm.response.json();",
+              "pm.test(\"Token presente y rol ADMIN\", function () {",
+              "    pm.expect(jsonData.rol).to.eql(\"ADMIN\");",
+              "    pm.collectionVariables.set(\"token_admin\", jsonData.token);",
+              "});"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/cuentas/ingresar",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "cuentas",
+            "ingresar"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"correo\": \"admin@ordenexpress.com\",\n  \"clave\": \"Admin2026*\"\n}"
+        }
+      }
+    },
+    {
+      "name": "4. Consultar catalogo (ADMIN) para elegir muebles con stock",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test(\"Status code is 200 OK\", function () {",
+              "    pm.response.to.have.status(200);",
+              "});",
+              "var conStock = pm.response.json().filter(function (m) { return m.unidades > 0; });",
+              "pm.test(\"Hay al menos dos muebles con stock\", function () {",
+              "    pm.expect(conStock.length).to.be.at.least(2);",
+              "});",
+              "pm.collectionVariables.set(\"id_mueble\", conStock[0].id);",
+              "pm.collectionVariables.set(\"precio_mueble\", conStock[0].precioUsd);",
+              "pm.collectionVariables.set(\"id_mueble_2\", conStock[1].id);",
+              "// Una unidad mas de las que hay: sirve para probar \"Stock insuficiente\".",
+              "pm.collectionVariables.set(\"cantidad_excedida\", conStock[1].unidades + 1);"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{token_admin}}"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/muebles",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "muebles"
+          ]
+        }
+      }
+    },
+    {
+      "name": "5. Anadir item al carrito (CLIENTE) - 201",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test(\"Status code is 201 Created\", function () {",
+              "    pm.response.to.have.status(201);",
+              "});",
+              "var carrito = pm.response.json();",
+              "var precio = Number(pm.collectionVariables.get(\"precio_mueble\"));",
+              "pm.test(\"El carrito tiene el item con la cantidad elegida\", function () {",
+              "    pm.expect(carrito.items).to.have.lengthOf(1);",
+              "    pm.expect(carrito.cantidadItems).to.eql(1);",
+              "    pm.expect(carrito.items[0].idMueble).to.eql(pm.collectionVariables.get(\"id_mueble\"));",
+              "    pm.expect(carrito.items[0].cantidad).to.eql(2);",
+              "});",
+              "pm.test(\"Montos calculados por el backend (USD y Bs.)\", function () {",
+              "    pm.expect(carrito.items[0].subtotalUsd).to.be.closeTo(precio * 2, 0.001);",
+              "    pm.expect(carrito.totalUsd).to.be.closeTo(precio * 2, 0.001);",
+              "    pm.expect(carrito.totalBs).to.be.above(0);",
+              "    pm.expect(carrito.items[0]).to.have.property(\"precioBs\");",
+              "});"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{token_cliente}}"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/carrito/items",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "carrito",
+            "items"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"idMueble\": \"{{id_mueble}}\",\n  \"cantidad\": 2\n}"
+        }
+      }
+    },
+    {
+      "name": "6. Anadir el MISMO mueble otra vez - 409",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test(\"Status code is 409 Conflict\", function () {",
+              "    pm.response.to.have.status(409);",
+              "});",
+              "pm.test(\"Mensaje de error en espanol\", function () {",
+              "    pm.expect(pm.response.json().mensaje).to.include(\"ya est\");",
+              "});"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{token_cliente}}"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/carrito/items",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "carrito",
+            "items"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"idMueble\": \"{{id_mueble}}\",\n  \"cantidad\": 1\n}"
+        }
+      }
+    },
+    {
+      "name": "7. Anadir cantidad mayor al stock - 409 Stock insuficiente",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test(\"Status code is 409 Conflict\", function () {",
+              "    pm.response.to.have.status(409);",
+              "});",
+              "pm.test(\"Mensaje de error en espanol\", function () {",
+              "    pm.expect(pm.response.json().mensaje).to.include(\"Stock insuficiente\");",
+              "});"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{token_cliente}}"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/carrito/items",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "carrito",
+            "items"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"idMueble\": \"{{id_mueble_2}}\",\n  \"cantidad\": {{cantidad_excedida}}\n}"
+        }
+      }
+    },
+    {
+      "name": "8. Anadir mueble que no existe - 404",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test(\"Status code is 404 Not Found\", function () {",
+              "    pm.response.to.have.status(404);",
+              "});",
+              "pm.test(\"Mensaje de error en espanol\", function () {",
+              "    pm.expect(pm.response.json().mensaje).to.include(\"no existe\");",
+              "});"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{token_cliente}}"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/carrito/items",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "carrito",
+            "items"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"idMueble\": \"no-existe-123\",\n  \"cantidad\": 1\n}"
+        }
+      }
+    },
+    {
+      "name": "9. Anadir con cantidad 0 - 400",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test(\"Status code is 400 Bad Request\", function () {",
+              "    pm.response.to.have.status(400);",
+              "});",
+              "pm.test(\"Mensaje de error en espanol\", function () {",
+              "    pm.expect(pm.response.json().mensaje).to.include(\"al menos 1\");",
+              "});"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{token_cliente}}"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/carrito/items",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "carrito",
+            "items"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"idMueble\": \"{{id_mueble_2}}\",\n  \"cantidad\": 0\n}"
+        }
+      }
+    },
+    {
+      "name": "10. Anadir con cantidad negativa (-1) - 400",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test(\"Status code is 400 Bad Request\", function () {",
+              "    pm.response.to.have.status(400);",
+              "});",
+              "pm.test(\"Mensaje de error en espanol\", function () {",
+              "    pm.expect(pm.response.json().mensaje).to.include(\"al menos 1\");",
+              "});"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{token_cliente}}"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/carrito/items",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "carrito",
+            "items"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"idMueble\": \"{{id_mueble_2}}\",\n  \"cantidad\": -1\n}"
+        }
+      }
+    },
+    {
+      "name": "11. Anadir con cantidad null - 400",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test(\"Status code is 400 Bad Request\", function () {",
+              "    pm.response.to.have.status(400);",
+              "});",
+              "pm.test(\"Mensaje de error en espanol\", function () {",
+              "    pm.expect(pm.response.json().mensaje).to.include(\"obligatoria\");",
+              "});"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{token_cliente}}"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/carrito/items",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "carrito",
+            "items"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"idMueble\": \"{{id_mueble_2}}\",\n  \"cantidad\": null\n}"
+        }
+      }
+    },
+    {
+      "name": "12. Anadir con cantidad decimal (1.5) - 400 formato",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test(\"Status code is 400 Bad Request\", function () {",
+              "    pm.response.to.have.status(400);",
+              "});",
+              "pm.test(\"Mensaje de error en espanol\", function () {",
+              "    pm.expect(pm.response.json().mensaje).to.include(\"entero\");",
+              "});"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{token_cliente}}"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/carrito/items",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "carrito",
+            "items"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"idMueble\": \"{{id_mueble_2}}\",\n  \"cantidad\": 1.5\n}"
+        }
+      }
+    },
+    {
+      "name": "13. Anadir con cantidad como texto (\"2\") - 400 formato",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test(\"Status code is 400 Bad Request\", function () {",
+              "    pm.response.to.have.status(400);",
+              "});",
+              "pm.test(\"Mensaje de error en espanol\", function () {",
+              "    pm.expect(pm.response.json().mensaje).to.include(\"entero\");",
+              "});"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{token_cliente}}"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/carrito/items",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "carrito",
+            "items"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"idMueble\": \"{{id_mueble_2}}\",\n  \"cantidad\": \"2\"\n}"
+        }
+      }
+    },
+    {
+      "name": "14. Anadir con cantidad mayor a 100000 - 400",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test(\"Status code is 400 Bad Request\", function () {",
+              "    pm.response.to.have.status(400);",
+              "});",
+              "pm.test(\"Mensaje de error en espanol\", function () {",
+              "    pm.expect(pm.response.json().mensaje).to.include(\"100000\");",
+              "});"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{token_cliente}}"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/carrito/items",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "carrito",
+            "items"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"idMueble\": \"{{id_mueble_2}}\",\n  \"cantidad\": 100001\n}"
+        }
+      }
+    },
+    {
+      "name": "15. Anadir sin idMueble - 400",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test(\"Status code is 400 Bad Request\", function () {",
+              "    pm.response.to.have.status(400);",
+              "});",
+              "pm.test(\"Mensaje de error en espanol\", function () {",
+              "    pm.expect(pm.response.json().mensaje).to.include(\"obligatorio\");",
+              "});"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{token_cliente}}"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/carrito/items",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "carrito",
+            "items"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"cantidad\": 1\n}"
+        }
+      }
+    },
+    {
+      "name": "16. Anadir como ADMIN (Debe rechazar 403)",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test(\"Status code is 403 Forbidden\", function () {",
+              "    pm.response.to.have.status(403);",
+              "});",
+              "pm.test(\"Mensaje de error en espanol\", function () {",
+              "    pm.expect(pm.response.json().mensaje).to.include(\"No tienes permisos\");",
+              "});"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{token_admin}}"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/carrito/items",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "carrito",
+            "items"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"idMueble\": \"{{id_mueble_2}}\",\n  \"cantidad\": 1\n}"
+        }
+      }
+    },
+    {
+      "name": "17. Anadir sin token (Debe rechazar 401)",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test(\"Status code is 401 Unauthorized\", function () {",
+              "    pm.response.to.have.status(401);",
+              "});",
+              "pm.test(\"Mensaje de error en espanol\", function () {",
+              "    pm.expect(pm.response.json().mensaje).to.include(\"sesi\");",
+              "});"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/carrito/items",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "carrito",
+            "items"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"idMueble\": \"{{id_mueble_2}}\",\n  \"cantidad\": 1\n}"
+        }
+      }
+    },
+    {
+      "name": "18. Anadir un segundo mueble - 201 y total acumulado",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test(\"Status code is 201 Created\", function () {",
+              "    pm.response.to.have.status(201);",
+              "});",
+              "var carrito = pm.response.json();",
+              "pm.test(\"El carrito ahora tiene 2 items y el total es la suma de subtotales\", function () {",
+              "    pm.expect(carrito.items).to.have.lengthOf(2);",
+              "    var suma = carrito.items.reduce(function (s, i) { return s + i.subtotalUsd; }, 0);",
+              "    pm.expect(carrito.totalUsd).to.be.closeTo(suma, 0.001);",
+              "});"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{token_cliente}}"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/carrito/items",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "carrito",
+            "items"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"idMueble\": \"{{id_mueble_2}}\",\n  \"cantidad\": 1\n}"
+        }
+      }
+    }
+  ]
+}

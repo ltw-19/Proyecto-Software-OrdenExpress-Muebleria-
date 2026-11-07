@@ -1,0 +1,709 @@
+{
+  "info": {
+    "name": "OrdenExpress - Modulo Carrito - Consultar Carrito",
+    "description": "Pruebas de integracion para la historia Consultar Carrito (GET /api/carrito). Ejecutar en orden con el backend en el puerto 8080.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:8080"
+    },
+    {
+      "key": "token_admin",
+      "value": ""
+    },
+    {
+      "key": "token_cliente",
+      "value": ""
+    },
+    {
+      "key": "token_cliente_b",
+      "value": ""
+    },
+    {
+      "key": "correo_cliente",
+      "value": ""
+    },
+    {
+      "key": "correo_cliente_b",
+      "value": ""
+    },
+    {
+      "key": "id_mueble",
+      "value": ""
+    },
+    {
+      "key": "id_mueble_2",
+      "value": ""
+    },
+    {
+      "key": "carrito_json",
+      "value": ""
+    }
+  ],
+  "item": [
+    {
+      "name": "1. Registrar CLIENTE A para la prueba",
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "exec": [
+              "// Correo unico en cada corrida para que la coleccion se pueda repetir.",
+              "pm.collectionVariables.set(\"correo_cliente\", \"correo.cliente.\" + Date.now() + \"@ordenexpress.com\");"
+            ],
+            "type": "text/javascript"
+          }
+        },
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test(\"Status code is 201 Created\", function () {",
+              "    pm.response.to.have.status(201);",
+              "});"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/cuentas/registro",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "cuentas",
+            "registro"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"nombre\": \"Cliente\",\n  \"apellido\": \"Consulta\",\n  \"correo\": \"{{correo_cliente}}\",\n  \"clave\": \"Cliente123*\",\n  \"telefono\": \"04121234567\"\n}"
+        }
+      }
+    },
+    {
+      "name": "2. Iniciar Sesion como CLIENTE A",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test(\"Status code is 200 OK\", function () {",
+              "    pm.response.to.have.status(200);",
+              "});",
+              "var jsonData = pm.response.json();",
+              "pm.test(\"Token presente y rol CLIENTE\", function () {",
+              "    pm.expect(jsonData.rol).to.eql(\"CLIENTE\");",
+              "    pm.collectionVariables.set(\"token_cliente\", jsonData.token);",
+              "});"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/cuentas/ingresar",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "cuentas",
+            "ingresar"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"correo\": \"{{correo_cliente}}\",\n  \"clave\": \"Cliente123*\"\n}"
+        }
+      }
+    },
+    {
+      "name": "3. Iniciar Sesion como ADMIN",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test(\"Status code is 200 OK\", function () {",
+              "    pm.response.to.have.status(200);",
+              "});",
+              "var jsonData = pm.response.json();",
+              "pm.test(\"Token presente y rol ADMIN\", function () {",
+              "    pm.expect(jsonData.rol).to.eql(\"ADMIN\");",
+              "    pm.collectionVariables.set(\"token_admin\", jsonData.token);",
+              "});"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/cuentas/ingresar",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "cuentas",
+            "ingresar"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"correo\": \"admin@ordenexpress.com\",\n  \"clave\": \"Admin2026*\"\n}"
+        }
+      }
+    },
+    {
+      "name": "4. Consultar catalogo (ADMIN) para elegir muebles con stock",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test(\"Status code is 200 OK\", function () {",
+              "    pm.response.to.have.status(200);",
+              "});",
+              "var conStock = pm.response.json().filter(function (m) { return m.unidades >= 2; });",
+              "pm.test(\"Hay al menos dos muebles con 2 o mas unidades\", function () {",
+              "    pm.expect(conStock.length).to.be.at.least(2);",
+              "});",
+              "pm.collectionVariables.set(\"id_mueble\", conStock[0].id);",
+              "pm.collectionVariables.set(\"id_mueble_2\", conStock[1].id);"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{token_admin}}"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/muebles",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "muebles"
+          ]
+        }
+      }
+    },
+    {
+      "name": "5. Consultar carrito antes de anadir nada - 200 vacio",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test(\"Status code is 200 OK\", function () {",
+              "    pm.response.to.have.status(200);",
+              "});",
+              "var carrito = pm.response.json();",
+              "pm.test(\"Carrito vacio con totales en cero\", function () {",
+              "    pm.expect(carrito.items).to.be.an(\"array\").that.is.empty;",
+              "    pm.expect(carrito.cantidadItems).to.eql(0);",
+              "    pm.expect(carrito.totalUsd).to.eql(0);",
+              "    pm.expect(carrito.totalBs).to.eql(0);",
+              "});"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{token_cliente}}"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/carrito",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "carrito"
+          ]
+        }
+      }
+    },
+    {
+      "name": "6. (Preparacion) Anadir mueble A con cantidad 2",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test(\"Status code is 201 Created\", function () {",
+              "    pm.response.to.have.status(201);",
+              "});"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{token_cliente}}"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/carrito/items",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "carrito",
+            "items"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"idMueble\": \"{{id_mueble}}\",\n  \"cantidad\": 2\n}"
+        }
+      }
+    },
+    {
+      "name": "7. (Preparacion) Anadir mueble B con cantidad 1",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test(\"Status code is 201 Created\", function () {",
+              "    pm.response.to.have.status(201);",
+              "});"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{token_cliente}}"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/carrito/items",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "carrito",
+            "items"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"idMueble\": \"{{id_mueble_2}}\",\n  \"cantidad\": 1\n}"
+        }
+      }
+    },
+    {
+      "name": "8. Consultar carrito (CLIENTE A) - 200 con items y totales",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test(\"Status code is 200 OK\", function () {",
+              "    pm.response.to.have.status(200);",
+              "});",
+              "var carrito = pm.response.json();",
+              "var idA = pm.collectionVariables.get(\"id_mueble\");",
+              "var idB = pm.collectionVariables.get(\"id_mueble_2\");",
+              "pm.test(\"Devuelve los 2 items con la cantidad elegida al anadir\", function () {",
+              "    pm.expect(carrito.cantidadItems).to.eql(2);",
+              "    var a = carrito.items.find(function (i) { return i.idMueble === idA; });",
+              "    var b = carrito.items.find(function (i) { return i.idMueble === idB; });",
+              "    pm.expect(a.cantidad).to.eql(2);",
+              "    pm.expect(b.cantidad).to.eql(1);",
+              "});",
+              "pm.test(\"Cada item trae datos del mueble para mostrarlo\", function () {",
+              "    carrito.items.forEach(function (i) {",
+              "        [\"codigo\", \"nombre\", \"urlFoto\", \"precioUsd\", \"precioBs\", \"subtotalUsd\", \"subtotalBs\"].forEach(function (k) {",
+              "            pm.expect(i).to.have.property(k);",
+              "        });",
+              "        pm.expect(i.disponible).to.be.a(\"boolean\");",
+              "        pm.expect(i).to.not.have.property(\"unidades\");",
+              "    });",
+              "});",
+              "pm.test(\"Subtotal = precio x cantidad y total = suma de subtotales (USD)\", function () {",
+              "    var suma = 0;",
+              "    carrito.items.forEach(function (i) {",
+              "        pm.expect(i.subtotalUsd).to.be.closeTo(i.precioUsd * i.cantidad, 0.001);",
+              "        suma += i.subtotalUsd;",
+              "    });",
+              "    pm.expect(carrito.totalUsd).to.be.closeTo(suma, 0.001);",
+              "});",
+              "pm.test(\"Total en Bs. calculado por el backend con la misma tasa\", function () {",
+              "    var tasa = carrito.items[0].precioBs / carrito.items[0].precioUsd;",
+              "    pm.expect(carrito.totalBs).to.be.closeTo(carrito.totalUsd * tasa, 0.02);",
+              "});",
+              "pm.collectionVariables.set(\"carrito_json\", JSON.stringify(carrito));"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{token_cliente}}"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/carrito",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "carrito"
+          ]
+        }
+      }
+    },
+    {
+      "name": "9. Consultar otra vez - mismo resultado (consultar no modifica)",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test(\"Status code is 200 OK\", function () {",
+              "    pm.response.to.have.status(200);",
+              "});",
+              "pm.test(\"La respuesta es identica a la consulta anterior\", function () {",
+              "    pm.expect(pm.response.json()).to.eql(JSON.parse(pm.collectionVariables.get(\"carrito_json\")));",
+              "});"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{token_cliente}}"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/carrito",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "carrito"
+          ]
+        }
+      }
+    },
+    {
+      "name": "10. Registrar CLIENTE B",
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "exec": [
+              "// Correo unico en cada corrida para que la coleccion se pueda repetir.",
+              "pm.collectionVariables.set(\"correo_cliente_b\", \"correo.cliente.b.\" + Date.now() + \"@ordenexpress.com\");"
+            ],
+            "type": "text/javascript"
+          }
+        },
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test(\"Status code is 201 Created\", function () {",
+              "    pm.response.to.have.status(201);",
+              "});"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/cuentas/registro",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "cuentas",
+            "registro"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"nombre\": \"Cliente\",\n  \"apellido\": \"Consulta\",\n  \"correo\": \"{{correo_cliente_b}}\",\n  \"clave\": \"Cliente123*\",\n  \"telefono\": \"04121234567\"\n}"
+        }
+      }
+    },
+    {
+      "name": "11. Iniciar Sesion como CLIENTE B",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test(\"Status code is 200 OK\", function () {",
+              "    pm.response.to.have.status(200);",
+              "});",
+              "var jsonData = pm.response.json();",
+              "pm.test(\"Token presente y rol CLIENTE\", function () {",
+              "    pm.expect(jsonData.rol).to.eql(\"CLIENTE\");",
+              "    pm.collectionVariables.set(\"token_cliente_b\", jsonData.token);",
+              "});"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/cuentas/ingresar",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "cuentas",
+            "ingresar"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"correo\": \"{{correo_cliente_b}}\",\n  \"clave\": \"Cliente123*\"\n}"
+        }
+      }
+    },
+    {
+      "name": "12. Consultar carrito como CLIENTE B - no ve el carrito de A",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test(\"Status code is 200 OK\", function () {",
+              "    pm.response.to.have.status(200);",
+              "});",
+              "var carrito = pm.response.json();",
+              "pm.test(\"Carrito vacio con totales en cero\", function () {",
+              "    pm.expect(carrito.items).to.be.an(\"array\").that.is.empty;",
+              "    pm.expect(carrito.cantidadItems).to.eql(0);",
+              "    pm.expect(carrito.totalUsd).to.eql(0);",
+              "    pm.expect(carrito.totalBs).to.eql(0);",
+              "});"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{token_cliente_b}}"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/carrito",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "carrito"
+          ]
+        }
+      }
+    },
+    {
+      "name": "13. Consultar carrito como ADMIN (Debe rechazar 403)",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test(\"Status code is 403 Forbidden\", function () {",
+              "    pm.response.to.have.status(403);",
+              "});",
+              "pm.test(\"Mensaje de error en espanol\", function () {",
+              "    pm.expect(pm.response.json().mensaje).to.include(\"No tienes permisos\");",
+              "});"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{token_admin}}"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/carrito",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "carrito"
+          ]
+        }
+      }
+    },
+    {
+      "name": "14. Consultar carrito sin token (Debe rechazar 401)",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test(\"Status code is 401 Unauthorized\", function () {",
+              "    pm.response.to.have.status(401);",
+              "});",
+              "pm.test(\"Mensaje de error en espanol\", function () {",
+              "    pm.expect(pm.response.json().mensaje).to.include(\"sesi\");",
+              "});"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/api/carrito",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "carrito"
+          ]
+        }
+      }
+    },
+    {
+      "name": "15. Consultar carrito con token invalido (Debe rechazar 401)",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test(\"Status code is 401 Unauthorized\", function () {",
+              "    pm.response.to.have.status(401);",
+              "});",
+              "pm.test(\"Mensaje de error en espanol\", function () {",
+              "    pm.expect(pm.response.json().mensaje).to.include(\"sesi\");",
+              "});"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer token.falso.123"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/carrito",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "carrito"
+          ]
+        }
+      }
+    }
+  ]
+}

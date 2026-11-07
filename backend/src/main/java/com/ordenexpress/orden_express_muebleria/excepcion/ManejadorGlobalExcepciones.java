@@ -35,9 +35,18 @@ public class ManejadorGlobalExcepciones {
         return ResponseEntity.badRequest().body(new RespuestaError(mensaje));
     }
 
-    /** JSON mal formado o con tipos incorrectos: HTTP 400. */
+    /**
+     * JSON mal formado o con tipos incorrectos: HTTP 400.
+     * Si el error lo lanzó un deserializador propio (por ejemplo DeserializadorCantidadEntera)
+     * con una ExcepcionNegocio, se responde con SU mensaje, que es más claro que el genérico.
+     */
     @ExceptionHandler(HttpMessageNotReadableException.class)
     public ResponseEntity<RespuestaError> manejarCuerpoInvalido(HttpMessageNotReadableException e) {
+        for (Throwable causa = e.getCause(); causa != null && causa != causa.getCause(); causa = causa.getCause()) {
+            if (causa instanceof ExcepcionNegocio negocio) {
+                return manejarNegocio(negocio);
+            }
+        }
         return ResponseEntity.badRequest()
                 .body(new RespuestaError("Los datos enviados no tienen un formato válido."));
     }
