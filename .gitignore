@@ -15,6 +15,7 @@ backend/.mvn/wrapper/maven-wrapper.jar
 
 ### IntelliJ IDEA ###
 backend/.idea
+.idea/workspace.xml
 *.iws
 *.iml
 *.ipr
@@ -31,3 +32,7 @@ build/
 
 ### VS Code ###
 .vscode/
+
+### Frontend (dependencias de npm y compilado) ###
+frontend/node_modules/
+frontend/dist/
