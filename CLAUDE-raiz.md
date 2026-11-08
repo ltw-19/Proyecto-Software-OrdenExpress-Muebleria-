@@ -41,7 +41,7 @@ Roles: `ADMIN`, `GESTOR` (Gestor de Ventas), `CLIENTE`.
 
 **Carrito:** la cantidad se elige al añadir. **No hay − / +** (eso es Sprint 2). Si el mueble ya está en el carrito → **409** ("Este mueble ya está en tu carrito. Elimínalo para añadirlo con otra cantidad.").
 
-**Pedido:** estados `PENDIENTE`, `APROBADO`, `RECHAZADO`; número legible `OE-0001`...; datos de entrega = nombre y apellido, teléfono y dirección; un solo número de WhatsApp (`app.whatsapp.numero` en el backend). *Sin definir:* si descargar la Pre-orden registra el pedido y cómo evitar duplicados por doble clic.
+**Pedido:** estados `PENDIENTE`, `APROBADO`, `RECHAZADO`; número legible `OE-0001`...; datos de entrega = nombre y apellido, teléfono y dirección; un solo número de WhatsApp (`app.whatsapp.numero` en el backend). **Decidido:** los ítems salen del carrito guardado y el carrito se vacía al registrar (un doble clic recibe 409, no duplica). Primero se registra (`POST /api/pedidos`) y después se descarga la Pre-orden (`GET /api/pedidos/{id}/preorden`) las veces que se quiera, sin registrar de nuevo. La dirección de entrega es obligatoria en el pedido.
 - **Aprobar/Rechazar:** solo el GESTOR, solo desde `PENDIENTE`. El ADMIN solo consulta.
 - **Eliminar Pedido:** el CLIENTE solo sus pedidos y solo en `PENDIENTE` (si no, 403); el GESTOR cualquiera; el **ADMIN no**.
 - **Editar Pedido (Sprint 2):** el cliente corrige datos de entrega en `PENDIENTE`; el gestor aplica `ajusteUsd`. No se editan ítems.

@@ -8,6 +8,7 @@ import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.function.Function;
 
 /** Acceso a carritos.json. Solo sabe leer y guardar carritos; las reglas de negocio están en CarritoServicio. */
 @Repository
@@ -74,6 +75,38 @@ public class CarritoRepositorio {
                 lista.add(actualizado);
             }
             return new ResultadoAgregar(ResultadoAgregar.Estado.AGREGADO, actualizado);
+        });
+    }
+
+    /**
+     * Entrega los ítems del carrito del usuario a {@code procesar} y, SOLO si este termina sin error,
+     * deja el carrito vacío (items [] y nunca null). Lo usa "Registrar Pedido".
+     *
+     * Todo ocurre bajo el candado de carritos.json: si el cliente hace doble clic en
+     * "Registrar pedido", la segunda petición espera, encuentra el carrito ya vacío y no duplica el pedido.
+     * Si {@code procesar} lanza una excepción (stock insuficiente, carrito vacío...), el archivo no se toca.
+     *
+     * @param procesar recibe una copia de los ítems (sin null) y devuelve el resultado (por ejemplo, el pedido).
+     */
+    public <R> R procesarItemsYVaciar(String idUsuario, Function<List<Carrito.ItemCarrito>, R> procesar) {
+        return archivos.modificarLista(ARCHIVO, Carrito.class, lista -> {
+            int posicion = posicionDe(lista, idUsuario);
+
+            List<Carrito.ItemCarrito> items = new ArrayList<>();
+            if (posicion >= 0 && lista.get(posicion).items() != null) {
+                for (Carrito.ItemCarrito item : lista.get(posicion).items()) {
+                    if (item != null && item.idMueble() != null) {
+                        items.add(item);
+                    }
+                }
+            }
+
+            R resultado = procesar.apply(List.copyOf(items));
+
+            if (posicion >= 0) {
+                lista.set(posicion, new Carrito(idUsuario, new ArrayList<>(), Instant.now()));
+            }
+            return resultado;
         });
     }
 

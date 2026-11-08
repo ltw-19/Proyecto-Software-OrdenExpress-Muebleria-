@@ -52,8 +52,14 @@ Una guarda de ruta redirige al ingreso si no hay sesión y bloquea según el rol
 | `POST /api/muebles` | ADMIN, GESTOR | `{nombre, categoria, descripcion, dimensiones:{ancho,alto,profundidad}, material, urlFoto, precioUsd, unidades}` → 201 mueble |
 | `GET /api/muebles?busqueda=&categoria=` | todos | lista (`id, codigo, nombre, categoria, descripcion, dimensiones, material, urlFoto, precioUsd, precioBs, disponible`; `unidades` solo ADMIN/GESTOR) |
 | `GET /api/muebles/categorias` | todos | lista de textos para el filtro |
+| `GET /api/carrito` | CLIENTE | → `{items:[{idMueble, codigo, nombre, urlFoto, precioUsd, precioBs, cantidad, subtotalUsd, subtotalBs, disponible}], cantidadItems, totalUsd, totalBs}` (vacío: `items: []`, totales `0.00`) |
+| `POST /api/carrito/items` | CLIENTE | `{idMueble, cantidad}` → 201 carrito (mismo formato). 409 "Stock insuficiente" o mueble ya en el carrito; 404 mueble inexistente |
+| `POST /api/pedidos` | CLIENTE | `{nombre, apellido, telefono, direccion}` (los cuatro obligatorios; dirección ≤ 200). Los ítems salen del carrito guardado, que queda vacío. → 201 `{id, numero, estado, timestamp, items:[{idMueble, codigo, nombre, cantidad, precioUnitarioUsd, precioUnitarioBs, subtotalUsd, subtotalBs}], tasaBcv, totalUsd, totalBs, entrega:{nombre, apellido, telefono, direccion}, enlaceWhatsapp}`. 409 carrito vacío (también el doble clic), "Stock insuficiente" o mueble que ya no existe |
+| `GET /api/pedidos/{id}/preorden` | CLIENTE (dueño) | → 200 PDF (`application/pdf`, archivo `preorden-OE-0001.pdf`); pedirlo con `responseType: 'blob'`. Se puede descargar varias veces sin duplicar. 404 no existe, 403 es de otro cliente |
 
-**Aún no existen en el backend:** `GET /api/tasa`, carrito y pedidos (incluida la Pre-orden en PDF). No programes contra ellos hasta que se agreguen aquí.
+**Flujo del Carrito:** primero `POST /api/pedidos` (registra y devuelve `id` y `enlaceWhatsapp`); luego "Descargar Pre-orden" usa `GET /api/pedidos/{id}/preorden` y "Enviar Pedido a WhatsApp" abre `enlaceWhatsapp` tal cual (el mensaje ya viene armado por el backend).
+
+**Aún no existen en el backend:** `GET /api/tasa`, Eliminar ítem del Carrito, Consultar/Eliminar Pedido y Aprobar/Rechazar. No programes contra ellos hasta que se agreguen aquí.
 
 ## Formato
 - El precio se envía con **punto decimal** (la interfaz acepta coma y la convierte); máximo 2 decimales y mayor que 0.
