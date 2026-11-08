@@ -5,44 +5,9 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="8a3ce219-89a1-4c19-b5a5-f1d193608cfb" name="Changes" comment="Agregado la historia Registrar Mueble">
-      <change afterPath="$PROJECT_DIR$/.idea/vcs.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/backend/CLAUDE-backend.md" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/backend/src/main/java/com/ordenexpress/orden_express_muebleria/OrdenExpressMuebleriaApplication.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/backend/src/main/java/com/ordenexpress/orden_express_muebleria/configuracion/ConfiguracionSeguridad.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/backend/src/main/java/com/ordenexpress/orden_express_muebleria/controlador/CuentaControlador.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/backend/src/main/java/com/ordenexpress/orden_express_muebleria/controlador/MuebleControlador.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/backend/src/main/java/com/ordenexpress/orden_express_muebleria/dto/CambioRolSolicitud.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/backend/src/main/java/com/ordenexpress/orden_express_muebleria/dto/CuentaRespuesta.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/backend/src/main/java/com/ordenexpress/orden_express_muebleria/dto/IngresoRespuesta.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/backend/src/main/java/com/ordenexpress/orden_express_muebleria/dto/IngresoSolicitud.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/backend/src/main/java/com/ordenexpress/orden_express_muebleria/dto/ModificacionCuentaSolicitud.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/backend/src/main/java/com/ordenexpress/orden_express_muebleria/dto/MuebleRespuesta.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/backend/src/main/java/com/ordenexpress/orden_express_muebleria/dto/MuebleSolicitud.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/backend/src/main/java/com/ordenexpress/orden_express_muebleria/dto/RegistroSolicitud.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/backend/src/main/java/com/ordenexpress/orden_express_muebleria/dto/RespuestaError.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/backend/src/main/java/com/ordenexpress/orden_express_muebleria/excepcion/ExcepcionAlmacenamiento.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/backend/src/main/java/com/ordenexpress/orden_express_muebleria/excepcion/ExcepcionNegocio.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/backend/src/main/java/com/ordenexpress/orden_express_muebleria/excepcion/ManejadorGlobalExcepciones.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/backend/src/main/java/com/ordenexpress/orden_express_muebleria/modelo/EstadoPedido.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/backend/src/main/java/com/ordenexpress/orden_express_muebleria/modelo/Mueble.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/backend/src/main/java/com/ordenexpress/orden_express_muebleria/modelo/Rol.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/backend/src/main/java/com/ordenexpress/orden_express_muebleria/modelo/Usuario.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/backend/src/main/java/com/ordenexpress/orden_express_muebleria/repositorio/MuebleRepositorio.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/backend/src/main/java/com/ordenexpress/orden_express_muebleria/repositorio/UsuarioRepositorio.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/backend/src/main/java/com/ordenexpress/orden_express_muebleria/seguridad/FiltroAutenticacionJwt.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/backend/src/main/java/com/ordenexpress/orden_express_muebleria/seguridad/ServicioJwt.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/backend/src/main/java/com/ordenexpress/orden_express_muebleria/seguridad/UsuarioAutenticado.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/backend/src/main/java/com/ordenexpress/orden_express_muebleria/servicio/ConversionMonedaServicio.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/backend/src/main/java/com/ordenexpress/orden_express_muebleria/servicio/CuentaServicio.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/backend/src/main/java/com/ordenexpress/orden_express_muebleria/servicio/MuebleServicio.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/backend/src/main/java/com/ordenexpress/orden_express_muebleria/servicio/SemillaServicio.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/backend/src/main/java/com/ordenexpress/orden_express_muebleria/util/ServicioArchivoJson.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/backend/src/main/resources/application.properties" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/backend/src/test/java/com/ordenexpress/orden_express_muebleria/OrdenExpressMuebleriaApplicationTests.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/docs/trello/frontend-modulo-cuentas.md" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/misc.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/misc.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/vcs.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/vcs.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/backend/.gitattributes" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/backend/.gitignore" beforeDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -60,17 +25,10 @@
 }</component>
   <component name="GithubPullRequestsUISettings">{
   &quot;selectedUrlAndAccountId&quot;: {
-    &quot;url&quot;: &quot;https://github.com/ltw-19/Proyecto-Software-OrdenExpress-Muebleria-&quot;,
-    &quot;accountId&quot;: &quot;60b76883-a23d-4ff5-8d95-32adc38f2650&quot;
+    &quot;url&quot;: &quot;https://github.com/ltw-19/Proyecto-Software-OrdenExpress-Muebleria-.git&quot;,
+    &quot;accountId&quot;: &quot;01810819-f616-4e23-bc47-d1b2650532b6&quot;
   }
 }</component>
-  <component name="MavenImportPreferences">
-    <option name="generalSettings">
-      <MavenGeneralSettings>
-        <option name="mavenHomeTypeForPersistence" value="WRAPPER" />
-      </MavenGeneralSettings>
-    </option>
-  </component>
   <component name="NextEditCompletionFeaturesState">
     <decayedCancelled>
       <entry key="MS100" value="1.0098729248846876" />
@@ -150,6 +108,7 @@
     &quot;RequestMappingsPanelWidth0&quot;: &quot;75&quot;,
     &quot;RequestMappingsPanelWidth1&quot;: &quot;75&quot;,
     &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.TerminalTabsStorage.copyFrom.TerminalArrangementManager.252&quot;: &quot;true&quot;,
     &quot;RunOnceActivity.git.unshallow&quot;: &quot;true&quot;,
     &quot;RunOnceActivity.typescript.service.memoryLimit.init&quot;: &quot;true&quot;,
     &quot;Spring Boot.OrdenExpressMuebleriaApplication.executor&quot;: &quot;Run&quot;,
@@ -163,7 +122,9 @@
     &quot;node.js.selected.package.eslint&quot;: &quot;(autodetect)&quot;,
     &quot;node.js.selected.package.jshint&quot;: &quot;&quot;,
     &quot;node.js.selected.package.tslint&quot;: &quot;(autodetect)&quot;,
-    &quot;nodejs_package_manager_path&quot;: &quot;npm&quot;
+    &quot;nodejs_package_manager_path&quot;: &quot;npm&quot;,
+    &quot;settings.editor.selected.configurable&quot;: &quot;MavenSettings&quot;,
+    &quot;vue.rearranger.settings.migration&quot;: &quot;true&quot;
   }
 }</component>
   <component name="RecentsManager">
@@ -186,8 +147,8 @@
   <component name="SharedIndexes">
     <attachedChunks>
       <set>
-        <option value="bundled-jdk-30f59d01ecdd-2df11533d9fe-intellij.indexing.shared.core-IU-262.11879.100" />
-        <option value="bundled-js-predefined-d6986cc7102b-4abd2a77f808-JavaScript-IU-262.11879.100" />
+        <option value="bundled-jdk-30f59d01ecdd-2fc7cc6b9a17-intellij.indexing.shared.core-IU-253.33813.55" />
+        <option value="bundled-js-predefined-d6986cc7102b-9b0f141eb926-JavaScript-IU-253.33813.55" />
       </set>
     </attachedChunks>
   </component>
@@ -198,6 +159,8 @@
       <option name="number" value="Default" />
       <option name="presentableId" value="Default" />
       <updated>1793488025350</updated>
+      <workItem from="1794070781422" duration="5005000" />
+      <workItem from="1794175787360" duration="940000" />
     </task>
     <servers />
   </component>
