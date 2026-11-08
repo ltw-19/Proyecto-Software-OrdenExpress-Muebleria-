@@ -28,7 +28,15 @@ public class ConversionMonedaServicio {
      * y así el resultado no acumula errores de centavos.
      */
     public BigDecimal usdABolivares(BigDecimal montoUsd) {
-        return montoUsd.multiply(tasaBcv).setScale(2, RoundingMode.HALF_UP);
+        return usdABolivares(montoUsd, tasaBcv);
+    }
+
+    /**
+     * Igual que la anterior, pero con una tasa dada. La usa "Registrar Pedido" para que todos
+     * los montos de un pedido salgan de la MISMA tasa congelada, aunque la tasa cambie a mitad del cálculo.
+     */
+    public static BigDecimal usdABolivares(BigDecimal montoUsd, BigDecimal tasa) {
+        return montoUsd.multiply(tasa).setScale(2, RoundingMode.HALF_UP);
     }
 
     public BigDecimal getTasaBcv() {

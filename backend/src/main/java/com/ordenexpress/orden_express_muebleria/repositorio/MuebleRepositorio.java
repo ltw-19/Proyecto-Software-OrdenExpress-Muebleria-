@@ -6,6 +6,7 @@ import org.springframework.stereotype.Repository;
 
 import java.util.List;
 import java.util.Locale;
+import java.util.Optional;
 import java.util.function.Function;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -27,6 +28,10 @@ public class MuebleRepositorio {
 
     public List<Mueble> listar() {
         return archivos.leerLista(ARCHIVO, Mueble.class);
+    }
+
+    public Optional<Mueble> buscarPorId(String id) {
+        return listar().stream().filter(m -> id.equals(m.id())).findFirst();
     }
 
     public void guardarTodos(List<Mueble> nuevos) {

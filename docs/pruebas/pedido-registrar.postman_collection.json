@@ -1,0 +1,1198 @@
+{
+  "info": {
+    "name": "OrdenExpress - Modulo Pedido - Registrar Pedido",
+    "description": "Pruebas de integracion para la historia Registrar Pedido (POST /api/pedidos y GET /api/pedidos/{id}/preorden). Ejecutar en orden con el backend en el puerto 8080. El caso 'Stock insuficiente' al registrar se cubre en RegistrarPedidoTest (por API no hay forma de bajar el stock hasta que exista Aprobar Pedido).",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:8080"
+    },
+    {
+      "key": "token_admin",
+      "value": ""
+    },
+    {
+      "key": "token_cliente",
+      "value": ""
+    },
+    {
+      "key": "token_cliente_b",
+      "value": ""
+    },
+    {
+      "key": "correo_cliente",
+      "value": ""
+    },
+    {
+      "key": "correo_cliente_b",
+      "value": ""
+    },
+    {
+      "key": "id_mueble",
+      "value": ""
+    },
+    {
+      "key": "id_mueble_2",
+      "value": ""
+    },
+    {
+      "key": "precio_mueble",
+      "value": ""
+    },
+    {
+      "key": "precio_mueble_2",
+      "value": ""
+    },
+    {
+      "key": "id_pedido",
+      "value": ""
+    },
+    {
+      "key": "numero_pedido",
+      "value": ""
+    }
+  ],
+  "item": [
+    {
+      "name": "1. Registrar CLIENTE A para la prueba",
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "exec": [
+              "// Correo unico en cada corrida para que la coleccion se pueda repetir.",
+              "pm.collectionVariables.set(\"correo_cliente\", \"pedido.cliente.\" + Date.now() + \"@ordenexpress.com\");"
+            ],
+            "type": "text/javascript"
+          }
+        },
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test(\"Status code is 201 Created\", function () {",
+              "    pm.response.to.have.status(201);",
+              "});"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/cuentas/registro",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "cuentas",
+            "registro"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"nombre\": \"Cliente\",\n  \"apellido\": \"Pedido\",\n  \"correo\": \"{{correo_cliente}}\",\n  \"clave\": \"Cliente123*\",\n  \"telefono\": \"04121234567\"\n}"
+        }
+      }
+    },
+    {
+      "name": "2. Iniciar Sesion como CLIENTE A",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test(\"Status code is 200 OK\", function () {",
+              "    pm.response.to.have.status(200);",
+              "});",
+              "var jsonData = pm.response.json();",
+              "pm.test(\"Token presente y rol CLIENTE\", function () {",
+              "    pm.expect(jsonData.rol).to.eql(\"CLIENTE\");",
+              "    pm.collectionVariables.set(\"token_cliente\", jsonData.token);",
+              "});"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/cuentas/ingresar",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "cuentas",
+            "ingresar"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"correo\": \"{{correo_cliente}}\",\n  \"clave\": \"Cliente123*\"\n}"
+        }
+      }
+    },
+    {
+      "name": "3. Iniciar Sesion como ADMIN",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test(\"Status code is 200 OK\", function () {",
+              "    pm.response.to.have.status(200);",
+              "});",
+              "var jsonData = pm.response.json();",
+              "pm.test(\"Token presente y rol ADMIN\", function () {",
+              "    pm.expect(jsonData.rol).to.eql(\"ADMIN\");",
+              "    pm.collectionVariables.set(\"token_admin\", jsonData.token);",
+              "});"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/cuentas/ingresar",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "cuentas",
+            "ingresar"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"correo\": \"admin@ordenexpress.com\",\n  \"clave\": \"Admin2026*\"\n}"
+        }
+      }
+    },
+    {
+      "name": "4. Consultar catalogo (ADMIN) para elegir dos muebles con stock",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test(\"Status code is 200 OK\", function () {",
+              "    pm.response.to.have.status(200);",
+              "});",
+              "var conStock = pm.response.json().filter(function (m) { return m.unidades > 0; });",
+              "pm.test(\"Hay al menos dos muebles con stock\", function () {",
+              "    pm.expect(conStock.length).to.be.at.least(2);",
+              "});",
+              "pm.collectionVariables.set(\"id_mueble\", conStock[0].id);",
+              "pm.collectionVariables.set(\"precio_mueble\", conStock[0].precioUsd);",
+              "pm.collectionVariables.set(\"id_mueble_2\", conStock[1].id);",
+              "pm.collectionVariables.set(\"precio_mueble_2\", conStock[1].precioUsd);"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{token_admin}}"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/muebles",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "muebles"
+          ]
+        }
+      }
+    },
+    {
+      "name": "5. Registrar pedido con el carrito VACIO - 409",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test(\"Status code is 409 Conflict\", function () {",
+              "    pm.response.to.have.status(409);",
+              "});",
+              "pm.test(\"Error con formato {mensaje}\", function () {",
+              "    pm.expect(pm.response.json()).to.have.property(\"mensaje\");",
+              "});"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer {{token_cliente}}"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/pedidos",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "pedidos"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"nombre\": \"Cliente\",\n  \"apellido\": \"Pedido\",\n  \"telefono\": \"04121234567\",\n  \"direccion\": \"Av. Principal de Las Mercedes, Caracas\"\n}"
+        }
+      }
+    },
+    {
+      "name": "6. Anadir mueble 1 al carrito (cantidad 1) - 201",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test(\"Status code is 201 Created\", function () {",
+              "    pm.response.to.have.status(201);",
+              "});"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer {{token_cliente}}"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/carrito/items",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "carrito",
+            "items"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"idMueble\": \"{{id_mueble}}\",\n  \"cantidad\": 1\n}"
+        }
+      }
+    },
+    {
+      "name": "7. Anadir mueble 2 al carrito (cantidad 1) - 201",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test(\"Status code is 201 Created\", function () {",
+              "    pm.response.to.have.status(201);",
+              "});"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer {{token_cliente}}"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/carrito/items",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "carrito",
+            "items"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"idMueble\": \"{{id_mueble_2}}\",\n  \"cantidad\": 1\n}"
+        }
+      }
+    },
+    {
+      "name": "8. Registrar pedido sin token (Debe rechazar 401)",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test(\"Status code is 401 Unauthorized\", function () {",
+              "    pm.response.to.have.status(401);",
+              "});",
+              "pm.test(\"Error con formato {mensaje}\", function () {",
+              "    pm.expect(pm.response.json()).to.have.property(\"mensaje\");",
+              "});"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/pedidos",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "pedidos"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"nombre\": \"Cliente\",\n  \"apellido\": \"Pedido\",\n  \"telefono\": \"04121234567\",\n  \"direccion\": \"Av. Principal de Las Mercedes, Caracas\"\n}"
+        }
+      }
+    },
+    {
+      "name": "9. Registrar pedido como ADMIN (Debe rechazar 403)",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test(\"Status code is 403 Forbidden\", function () {",
+              "    pm.response.to.have.status(403);",
+              "});",
+              "pm.test(\"Error con formato {mensaje}\", function () {",
+              "    pm.expect(pm.response.json()).to.have.property(\"mensaje\");",
+              "});"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer {{token_admin}}"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/pedidos",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "pedidos"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"nombre\": \"Cliente\",\n  \"apellido\": \"Pedido\",\n  \"telefono\": \"04121234567\",\n  \"direccion\": \"Av. Principal de Las Mercedes, Caracas\"\n}"
+        }
+      }
+    },
+    {
+      "name": "10. Registrar pedido con nombre vacio - 400",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test(\"Status code is 400 Bad Request\", function () {",
+              "    pm.response.to.have.status(400);",
+              "});",
+              "pm.test(\"Error con formato {mensaje}\", function () {",
+              "    pm.expect(pm.response.json()).to.have.property(\"mensaje\");",
+              "});"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer {{token_cliente}}"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/pedidos",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "pedidos"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"nombre\": \"\",\n  \"apellido\": \"Pedido\",\n  \"telefono\": \"04121234567\",\n  \"direccion\": \"Av. Principal de Las Mercedes, Caracas\"\n}"
+        }
+      }
+    },
+    {
+      "name": "11. Registrar pedido con apellido vacio - 400",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test(\"Status code is 400 Bad Request\", function () {",
+              "    pm.response.to.have.status(400);",
+              "});",
+              "pm.test(\"Error con formato {mensaje}\", function () {",
+              "    pm.expect(pm.response.json()).to.have.property(\"mensaje\");",
+              "});"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer {{token_cliente}}"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/pedidos",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "pedidos"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"nombre\": \"Cliente\",\n  \"apellido\": \"\",\n  \"telefono\": \"04121234567\",\n  \"direccion\": \"Av. Principal de Las Mercedes, Caracas\"\n}"
+        }
+      }
+    },
+    {
+      "name": "12. Registrar pedido con telefono invalido - 400",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test(\"Status code is 400 Bad Request\", function () {",
+              "    pm.response.to.have.status(400);",
+              "});",
+              "pm.test(\"Error con formato {mensaje}\", function () {",
+              "    pm.expect(pm.response.json()).to.have.property(\"mensaje\");",
+              "});"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer {{token_cliente}}"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/pedidos",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "pedidos"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"nombre\": \"Cliente\",\n  \"apellido\": \"Pedido\",\n  \"telefono\": \"0412-123\",\n  \"direccion\": \"Av. Principal de Las Mercedes, Caracas\"\n}"
+        }
+      }
+    },
+    {
+      "name": "13. Registrar pedido con direccion vacia - 400",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test(\"Status code is 400 Bad Request\", function () {",
+              "    pm.response.to.have.status(400);",
+              "});",
+              "pm.test(\"Error con formato {mensaje}\", function () {",
+              "    pm.expect(pm.response.json()).to.have.property(\"mensaje\");",
+              "});"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer {{token_cliente}}"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/pedidos",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "pedidos"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"nombre\": \"Cliente\",\n  \"apellido\": \"Pedido\",\n  \"telefono\": \"04121234567\",\n  \"direccion\": \"\"\n}"
+        }
+      }
+    },
+    {
+      "name": "14. Registrar pedido con direccion de 201 caracteres - 400",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test(\"Status code is 400 Bad Request\", function () {",
+              "    pm.response.to.have.status(400);",
+              "});",
+              "pm.test(\"Error con formato {mensaje}\", function () {",
+              "    pm.expect(pm.response.json()).to.have.property(\"mensaje\");",
+              "});"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer {{token_cliente}}"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/pedidos",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "pedidos"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"nombre\": \"Cliente\",\n  \"apellido\": \"Pedido\",\n  \"telefono\": \"04121234567\",\n  \"direccion\": \"xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx\"\n}"
+        }
+      }
+    },
+    {
+      "name": "15. Registrar pedido (CLIENTE A) - 201, ignora montos enviados",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test(\"Status code is 201 Created\", function () {",
+              "    pm.response.to.have.status(201);",
+              "});",
+              "var p = pm.response.json();",
+              "pm.collectionVariables.set(\"id_pedido\", p.id);",
+              "pm.collectionVariables.set(\"numero_pedido\", p.numero);",
+              "pm.test(\"Numero legible OE-#### y estado PENDIENTE\", function () {",
+              "    pm.expect(p.numero).to.match(/^OE-\\d{4,}$/);",
+              "    pm.expect(p.estado).to.eql(\"PENDIENTE\");",
+              "    pm.expect(p.id).to.be.a(\"string\").and.not.empty;",
+              "    pm.expect(p.timestamp).to.be.a(\"string\").and.not.empty;",
+              "});",
+              "pm.test(\"Dos items con cantidad 1\", function () {",
+              "    pm.expect(p.items.length).to.eql(2);",
+              "    p.items.forEach(function (i) { pm.expect(i.cantidad).to.eql(1); });",
+              "});",
+              "pm.test(\"Total USD sale de muebles.json, no del cuerpo (0.01 ignorado)\", function () {",
+              "    var esperado = Number(pm.collectionVariables.get(\"precio_mueble\")) + Number(pm.collectionVariables.get(\"precio_mueble_2\"));",
+              "    pm.expect(Number(p.totalUsd)).to.be.closeTo(esperado, 0.001);",
+              "    pm.expect(Number(p.totalUsd)).to.not.eql(0.01);",
+              "});",
+              "pm.test(\"Total Bs = total USD x tasa congelada (2 decimales)\", function () {",
+              "    var esperadoBs = Math.round(Number(p.totalUsd) * Number(p.tasaBcv) * 100) / 100;",
+              "    pm.expect(Number(p.totalBs)).to.be.closeTo(esperadoBs, 0.001);",
+              "    pm.expect(Number(p.tasaBcv)).to.be.above(0);",
+              "});",
+              "pm.test(\"Datos de entrega guardados\", function () {",
+              "    pm.expect(p.entrega.nombre).to.eql(\"Cliente\");",
+              "    pm.expect(p.entrega.telefono).to.eql(\"04121234567\");",
+              "});",
+              "pm.test(\"Enlace de WhatsApp pre-estructurado con el numero del pedido\", function () {",
+              "    pm.expect(p.enlaceWhatsapp).to.match(/^https:\\/\\/wa\\.me\\/[0-9]+\\?text=/);",
+              "    pm.expect(decodeURIComponent(p.enlaceWhatsapp)).to.include(p.numero);",
+              "});",
+              "pm.test(\"El cliente no recibe la cifra de stock\", function () {",
+              "    p.items.forEach(function (i) { pm.expect(i).to.not.have.property(\"unidades\"); });",
+              "});"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer {{token_cliente}}"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/pedidos",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "pedidos"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"nombre\": \"Cliente\",\n  \"apellido\": \"Pedido\",\n  \"telefono\": \"04121234567\",\n  \"direccion\": \"Av. Principal de Las Mercedes, Caracas\",\n  \"totalUsd\": 0.01,\n  \"idUsuario\": \"otro-usuario\"\n}"
+        }
+      }
+    },
+    {
+      "name": "16. Consultar carrito despues de registrar - vacio",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test(\"Status code is 200 OK\", function () {",
+              "    pm.response.to.have.status(200);",
+              "});",
+              "pm.test(\"El carrito quedo vacio\", function () {",
+              "    pm.expect(pm.response.json().items.length).to.eql(0);",
+              "});"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{token_cliente}}"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/carrito",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "carrito"
+          ]
+        }
+      }
+    },
+    {
+      "name": "17. Registrar otra vez (doble clic) - 409, no duplica",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test(\"Status code is 409 Conflict\", function () {",
+              "    pm.response.to.have.status(409);",
+              "});",
+              "pm.test(\"Error con formato {mensaje}\", function () {",
+              "    pm.expect(pm.response.json()).to.have.property(\"mensaje\");",
+              "});"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer {{token_cliente}}"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/pedidos",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "pedidos"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"nombre\": \"Cliente\",\n  \"apellido\": \"Pedido\",\n  \"telefono\": \"04121234567\",\n  \"direccion\": \"Av. Principal de Las Mercedes, Caracas\"\n}"
+        }
+      }
+    },
+    {
+      "name": "18. Descargar Pre-orden en PDF (CLIENTE A) - 200",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test(\"Status code is 200 OK\", function () {",
+              "    pm.response.to.have.status(200);",
+              "});",
+              "pm.test(\"Es un PDF\", function () {",
+              "    pm.expect(pm.response.headers.get(\"Content-Type\")).to.include(\"application/pdf\");",
+              "    pm.expect(pm.response.text().substring(0, 4)).to.eql(\"%PDF\");",
+              "});",
+              "pm.test(\"Se descarga con el numero del pedido\", function () {",
+              "    pm.expect(pm.response.headers.get(\"Content-Disposition\")).to.include(\"preorden-\" + pm.collectionVariables.get(\"numero_pedido\") + \".pdf\");",
+              "});"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{token_cliente}}"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/pedidos/{{id_pedido}}/preorden",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "pedidos",
+            "{{id_pedido}}",
+            "preorden"
+          ]
+        }
+      }
+    },
+    {
+      "name": "19. Descargar Pre-orden otra vez - 200 (no duplica el pedido)",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test(\"Status code is 200 OK\", function () {",
+              "    pm.response.to.have.status(200);",
+              "});"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{token_cliente}}"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/pedidos/{{id_pedido}}/preorden",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "pedidos",
+            "{{id_pedido}}",
+            "preorden"
+          ]
+        }
+      }
+    },
+    {
+      "name": "20. Registrar CLIENTE B",
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "exec": [
+              "pm.collectionVariables.set(\"correo_cliente_b\", \"pedido.ajeno.\" + Date.now() + \"@ordenexpress.com\");"
+            ],
+            "type": "text/javascript"
+          }
+        },
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test(\"Status code is 201 Created\", function () {",
+              "    pm.response.to.have.status(201);",
+              "});"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/cuentas/registro",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "cuentas",
+            "registro"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"nombre\": \"Cliente\",\n  \"apellido\": \"Ajeno\",\n  \"correo\": \"{{correo_cliente_b}}\",\n  \"clave\": \"Cliente123*\",\n  \"telefono\": \"04121234568\"\n}"
+        }
+      }
+    },
+    {
+      "name": "21. Iniciar Sesion como CLIENTE B",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test(\"Status code is 200 OK\", function () {",
+              "    pm.response.to.have.status(200);",
+              "});",
+              "pm.collectionVariables.set(\"token_cliente_b\", pm.response.json().token);"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/cuentas/ingresar",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "cuentas",
+            "ingresar"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"correo\": \"{{correo_cliente_b}}\",\n  \"clave\": \"Cliente123*\"\n}"
+        }
+      }
+    },
+    {
+      "name": "22. CLIENTE B descarga la Pre-orden de A (Debe rechazar 403)",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test(\"Status code is 403 Forbidden\", function () {",
+              "    pm.response.to.have.status(403);",
+              "});",
+              "pm.test(\"Error con formato {mensaje}\", function () {",
+              "    pm.expect(pm.response.json()).to.have.property(\"mensaje\");",
+              "});"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{token_cliente_b}}"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/pedidos/{{id_pedido}}/preorden",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "pedidos",
+            "{{id_pedido}}",
+            "preorden"
+          ]
+        }
+      }
+    },
+    {
+      "name": "23. Descargar Pre-orden de un pedido que no existe - 404",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test(\"Status code is 404 Not Found\", function () {",
+              "    pm.response.to.have.status(404);",
+              "});",
+              "pm.test(\"Mensaje: El pedido no existe.\", function () {",
+              "    pm.expect(pm.response.json().mensaje).to.eql(\"El pedido no existe.\");",
+              "});"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{token_cliente}}"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/pedidos/no-existe/preorden",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "pedidos",
+            "no-existe",
+            "preorden"
+          ]
+        }
+      }
+    },
+    {
+      "name": "24. CLIENTE B anade un mueble a su carrito - 201",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test(\"Status code is 201 Created\", function () {",
+              "    pm.response.to.have.status(201);",
+              "});"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer {{token_cliente_b}}"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/carrito/items",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "carrito",
+            "items"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"idMueble\": \"{{id_mueble}}\",\n  \"cantidad\": 1\n}"
+        }
+      }
+    },
+    {
+      "name": "25. CLIENTE B registra su pedido - 201 con numero siguiente",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test(\"Status code is 201 Created\", function () {",
+              "    pm.response.to.have.status(201);",
+              "});",
+              "pm.test(\"Numero = numero de A + 1\", function () {",
+              "    var anterior = parseInt(pm.collectionVariables.get(\"numero_pedido\").substring(3), 10);",
+              "    var actual = parseInt(pm.response.json().numero.substring(3), 10);",
+              "    pm.expect(actual).to.be.at.least(anterior + 1);",
+              "});"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer {{token_cliente_b}}"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/pedidos",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "pedidos"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"nombre\": \"Cliente\",\n  \"apellido\": \"Pedido\",\n  \"telefono\": \"04121234567\",\n  \"direccion\": \"Av. Principal de Las Mercedes, Caracas\"\n}"
+        }
+      }
+    }
+  ]
+}

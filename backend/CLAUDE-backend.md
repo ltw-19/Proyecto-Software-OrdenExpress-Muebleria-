@@ -45,7 +45,7 @@ Java 25, Maven, **Spring Boot 4.1.2** (Spring Framework 7, Spring Security 7), J
 `SemillaServicio` crea el ADMIN y el Gestor si `usuarios.json` está vacío (credenciales en `application.properties`, solo desarrollo; cambiarlas antes de entregar) y, en un sistema nuevo, 6 muebles de ejemplo. Es un requisito técnico, no una historia.
 
 ## Endpoints implementados
-`POST /api/cuentas/ingresar`, `POST /api/cuentas/registro`, `PUT /api/cuentas/yo`, `GET /api/cuentas`, `PUT /api/cuentas/{id}/rol`, `POST /api/muebles`, `GET /api/muebles`, `GET /api/muebles/categorias`.
+`POST /api/cuentas/ingresar`, `POST /api/cuentas/registro`, `PUT /api/cuentas/yo`, `GET /api/cuentas`, `PUT /api/cuentas/{id}/rol`, `POST /api/muebles`, `GET /api/muebles`, `GET /api/muebles/categorias`, `POST /api/carrito/items`, `GET /api/carrito`, `POST /api/pedidos` (CLIENTE; cuerpo `{nombre, apellido, telefono, direccion}`; ítems del carrito, que se vacía; 201 con `enlaceWhatsapp`), `GET /api/pedidos/{id}/preorden` (CLIENTE dueño; PDF).
 
 ## Pendiente
-Tasa automática, Carrito, Pedido (registrar con PDF y WhatsApp, consultar, eliminar, aprobar/rechazar con descuento de stock). *Actualiza esta sección y la lista de endpoints al cerrar cada historia.*
+Tasa automática, Carrito (eliminar ítem), Pedido (consultar, eliminar, aprobar/rechazar con descuento de stock). *Actualiza esta sección y la lista de endpoints al cerrar cada historia.*
