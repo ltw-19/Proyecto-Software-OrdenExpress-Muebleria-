@@ -8,6 +8,7 @@ import com.ordenexpress.orden_express_muebleria.modelo.Carrito;
 import com.ordenexpress.orden_express_muebleria.modelo.EstadoPedido;
 import com.ordenexpress.orden_express_muebleria.modelo.Mueble;
 import com.ordenexpress.orden_express_muebleria.modelo.Pedido;
+import com.ordenexpress.orden_express_muebleria.modelo.Rol;
 import com.ordenexpress.orden_express_muebleria.repositorio.CarritoRepositorio;
 import com.ordenexpress.orden_express_muebleria.repositorio.MuebleRepositorio;
 import com.ordenexpress.orden_express_muebleria.repositorio.PedidoRepositorio;
@@ -24,6 +25,7 @@ import java.nio.charset.StandardCharsets;
 import java.text.NumberFormat;
 import java.time.Instant;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
@@ -31,7 +33,10 @@ import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.atomic.AtomicReference;
 
-/** Lógica de la épica Gestionar Pedido. Por ahora: Registrar Pedido (con Pre-orden en PDF y WhatsApp). */
+/**
+ * Lógica de la épica Gestionar Pedido: Registrar Pedido (con Pre-orden en PDF y WhatsApp)
+ * Consultar Pedido (lista, detalle y Aprobar/Rechazar del GESTOR) y Eliminar Pedido.
+ */
 @Service
 public class PedidoServicio {
 
@@ -121,6 +126,204 @@ public class PedidoServicio {
 
     /** PDF listo para enviar: número del pedido (para el nombre del archivo) y bytes. */
     public record Preorden(String numero, byte[] contenido) {
+    }
+
+    // ------------------------------------------------------------------
+    // Consultar Pedido (lista y detalle)
+    // ------------------------------------------------------------------
+
+    /**
+     * Historia: CONSULTAR PEDIDO (TODOS los roles).
+     * Algoritmo:
+     *  1. Lee pedidos.json.
+     *  2. CLIENTE → se queda solo con los pedidos cuyo idUsuario es el suyo (id del token).
+     *     ADMIN y GESTOR → bandeja global: todos los pedidos.
+     *  3. Ordena del más reciente al más antiguo (por timestamp).
+     *  4. Responde los montos CONGELADOS de cada pedido (no se recalculan con la tasa actual).
+     *
+     * @param idUsuario id de quien consulta, tomado del token.
+     * @param rol       rol de quien consulta, releído de usuarios.json por el filtro JWT.
+     */
+    public List<PedidoRespuesta> consultar(String idUsuario, Rol rol) {
+        return pedidoRepositorio.listar().stream()
+                .filter(pedido -> rol != Rol.CLIENTE || idUsuario.equals(pedido.idUsuario()))
+                .sorted(Comparator.comparing(Pedido::timestamp,
+                        Comparator.nullsLast(Comparator.reverseOrder())))
+                .map(this::aRespuesta)
+                .toList();
+    }
+
+    /**
+     * Detalle de un pedido. El CLIENTE solo ve los suyos (de otra persona → 403);
+     * ADMIN y GESTOR ven cualquiera. No existe → 404.
+     */
+    public PedidoRespuesta consultarDetalle(String idUsuario, Rol rol, String idPedido) {
+        Pedido pedido = rol == Rol.CLIENTE
+                ? buscarPedidoPropio(idUsuario, idPedido)
+                : buscarPedido(idPedido);
+        return aRespuesta(pedido);
+    }
+
+    // ------------------------------------------------------------------
+    // Aprobar / Rechazar (parte de Consultar Pedido: bandeja del GESTOR)
+    // ------------------------------------------------------------------
+
+    /**
+     * APROBAR PEDIDO (solo GESTOR; el permiso lo revisa el controlador con @PreAuthorize).
+     * Algoritmo (toca DOS archivos, por eso el orden y la compensación):
+     *  1. Toma el candado de pedidos.json y lee la versión más reciente del pedido.
+     *     No existe → 404. No está PENDIENTE → 409 (así un doble clic no descuenta dos veces).
+     *  2. Bajo el candado de muebles.json revisa TODOS los ítems:
+     *       - si un mueble ya no existe → 409;
+     *       - si la cantidad pedida supera las unidades actuales → 409 "Stock insuficiente".
+     *     Si alguno falla, no se descuenta nada (todo el pedido o nada) y el pedido sigue PENDIENTE.
+     *  3. Si todos alcanzan, resta las unidades y guarda muebles.json.
+     *  4. Cambia el estado a APROBADO y guarda pedidos.json.
+     *  5. Compensación: si falla guardar pedidos.json (paso 4), DEVUELVE las unidades descontadas
+     *     en el paso 3 y responde 500, para que el stock no quede rebajado con el pedido PENDIENTE.
+     */
+    public PedidoRespuesta aprobar(String idPedido) {
+        String id = exigirId(idPedido);
+        AtomicReference<Pedido> stockDescontado = new AtomicReference<>();
+        try {
+            Pedido aprobado = pedidoRepositorio.actualizar(id, actual -> {
+                exigirPendiente(actual, "aprobar");
+                descontarStock(actual);
+                stockDescontado.set(actual);
+                return conEstado(actual, EstadoPedido.APROBADO);
+            }).orElseThrow(() -> new ExcepcionNegocio(HttpStatus.NOT_FOUND, "El pedido no existe."));
+            return aRespuesta(aprobado);
+        } catch (ExcepcionAlmacenamiento e) {
+            devolverStock(stockDescontado.get());
+            throw e;
+        }
+    }
+
+    /**
+     * RECHAZAR PEDIDO (solo GESTOR). Solo desde PENDIENTE (si no → 409).
+     * No toca el stock: nunca se descontó, porque solo se descuenta al aprobar.
+     */
+    public PedidoRespuesta rechazar(String idPedido) {
+        String id = exigirId(idPedido);
+        Pedido rechazado = pedidoRepositorio.actualizar(id, actual -> {
+            exigirPendiente(actual, "rechazar");
+            return conEstado(actual, EstadoPedido.RECHAZADO);
+        }).orElseThrow(() -> new ExcepcionNegocio(HttpStatus.NOT_FOUND, "El pedido no existe."));
+        return aRespuesta(rechazado);
+    }
+
+    // ------------------------------------------------------------------
+    // Eliminar Pedido
+    // ------------------------------------------------------------------
+
+    /**
+     * Historia: ELIMINAR PEDIDO (CLIENTE y GESTOR; el ADMIN no, lo frena @PreAuthorize en el controlador).
+     * Algoritmo:
+     *  1. Toma el candado de pedidos.json y busca el pedido → no existe: 404.
+     *  2. Si quien elimina es CLIENTE:
+     *       - el pedido debe ser suyo (id del token) → si no, 403;
+     *       - debe estar PENDIENTE → si ya fue aprobado o rechazado, 403.
+     *     El GESTOR puede eliminar cualquier pedido, en cualquier estado.
+     *  3. Borra el nodo de pedidos.json (bajo el mismo candado de la revisión).
+     *  4. NO devuelve stock: si el pedido estaba APROBADO, las unidades descontadas no regresan.
+     *
+     * @param idUsuario id de quien elimina, tomado del token.
+     * @param rol       rol de quien elimina (CLIENTE o GESTOR).
+     */
+    public void eliminar(String idUsuario, Rol rol, String idPedido) {
+        String id = exigirId(idPedido);
+        Pedido eliminado = pedidoRepositorio.eliminar(id, pedido -> {
+            if (rol == Rol.CLIENTE) {
+                if (!idUsuario.equals(pedido.idUsuario())) {
+                    throw new ExcepcionNegocio(HttpStatus.FORBIDDEN, "No tienes permisos para eliminar este pedido.");
+                }
+                if (pedido.estado() != EstadoPedido.PENDIENTE) {
+                    throw new ExcepcionNegocio(HttpStatus.FORBIDDEN,
+                            "Solo puedes eliminar pedidos PENDIENTES. Este pedido ya está " + pedido.estado() + ".");
+                }
+            }
+        }).orElseThrow(() -> new ExcepcionNegocio(HttpStatus.NOT_FOUND, "El pedido no existe."));
+        registro.info("Pedido {} eliminado por un usuario con rol {}.", eliminado.numero(), rol);
+    }
+
+    /** Solo se aprueba o rechaza un pedido PENDIENTE: un pedido ya decidido no cambia. */
+    private static void exigirPendiente(Pedido pedido, String accion) {
+        if (pedido.estado() != EstadoPedido.PENDIENTE) {
+            throw new ExcepcionNegocio(HttpStatus.CONFLICT,
+                    "Solo se puede " + accion + " un pedido PENDIENTE. Este pedido ya está " + pedido.estado() + ".");
+        }
+    }
+
+    /**
+     * Pasos 2 y 3 de Aprobar: valida y descuenta el stock de todos los ítems bajo el candado
+     * de muebles.json. Primero valida TODO y después resta: si algo falla, se lanza la
+     * excepción antes de guardar y muebles.json queda igual.
+     */
+    private void descontarStock(Pedido pedido) {
+        Map<String, Integer> cantidades = cantidadesPorMueble(pedido);
+        muebleRepositorio.modificar(lista -> {
+            Map<String, Mueble> mueblesPorId = new HashMap<>();
+            for (Mueble mueble : lista) {
+                mueblesPorId.put(mueble.id(), mueble);
+            }
+            for (Map.Entry<String, Integer> pedidoMueble : cantidades.entrySet()) {
+                Mueble mueble = mueblesPorId.get(pedidoMueble.getKey());
+                if (mueble == null) {
+                    throw new ExcepcionNegocio(HttpStatus.CONFLICT,
+                            "Uno de los muebles del pedido ya no está en el catálogo. No se puede aprobar.");
+                }
+                int stock = mueble.unidades() == null ? 0 : mueble.unidades();
+                if (pedidoMueble.getValue() > stock) {
+                    throw new ExcepcionNegocio(HttpStatus.CONFLICT, "Stock insuficiente");
+                }
+            }
+            lista.replaceAll(mueble -> cantidades.containsKey(mueble.id())
+                    ? conUnidades(mueble, mueble.unidades() - cantidades.get(mueble.id()))
+                    : mueble);
+            return null;
+        });
+    }
+
+    /** Paso 5 de Aprobar (compensación): suma de vuelta las unidades que se descontaron. */
+    private void devolverStock(Pedido pedido) {
+        if (pedido == null) {
+            return;   // el stock no llegó a descontarse: no hay nada que devolver
+        }
+        Map<String, Integer> cantidades = cantidadesPorMueble(pedido);
+        try {
+            muebleRepositorio.modificar(lista -> {
+                lista.replaceAll(mueble -> cantidades.containsKey(mueble.id())
+                        ? conUnidades(mueble, (mueble.unidades() == null ? 0 : mueble.unidades())
+                                + cantidades.get(mueble.id()))
+                        : mueble);
+                return null;
+            });
+            registro.warn("Se devolvió el stock del pedido {} porque no se pudo guardar su aprobación.",
+                    pedido.numero());
+        } catch (ExcepcionAlmacenamiento e) {
+            registro.error("No se pudo devolver el stock del pedido {} tras fallar su aprobación.",
+                    pedido.numero(), e);
+        }
+    }
+
+    /** Suma la cantidad pedida de cada mueble (por si un mismo mueble apareciera en dos ítems). */
+    private static Map<String, Integer> cantidadesPorMueble(Pedido pedido) {
+        Map<String, Integer> cantidades = new HashMap<>();
+        for (Pedido.ItemPedido item : pedido.items()) {
+            cantidades.merge(item.idMueble(), item.cantidad(), Integer::sum);
+        }
+        return cantidades;
+    }
+
+    private static Mueble conUnidades(Mueble m, int unidades) {
+        return new Mueble(m.id(), m.codigo(), m.nombre(), m.categoria(), m.descripcion(), m.dimensiones(),
+                m.material(), m.urlFoto(), m.precioUsd(), unidades);
+    }
+
+    /** Copia del pedido con otro estado. Todo lo demás (montos, tasa, timestamp) queda igual. */
+    private static Pedido conEstado(Pedido p, EstadoPedido estado) {
+        return new Pedido(p.id(), p.numero(), p.idUsuario(), p.items(), p.tasaBcv(), p.totalUsd(),
+                p.totalBs(), p.entrega(), estado, p.timestamp());
     }
 
     // ------------------------------------------------------------------
@@ -222,12 +425,20 @@ public class PedidoServicio {
         }
     }
 
-    private Pedido buscarPedidoPropio(String idUsuario, String idPedido) {
+    private static String exigirId(String idPedido) {
         if (idPedido == null || idPedido.isBlank()) {
             throw new ExcepcionNegocio(HttpStatus.BAD_REQUEST, "El pedido es obligatorio.");
         }
-        Pedido pedido = pedidoRepositorio.buscarPorId(idPedido.trim())
+        return idPedido.trim();
+    }
+
+    private Pedido buscarPedido(String idPedido) {
+        return pedidoRepositorio.buscarPorId(exigirId(idPedido))
                 .orElseThrow(() -> new ExcepcionNegocio(HttpStatus.NOT_FOUND, "El pedido no existe."));
+    }
+
+    private Pedido buscarPedidoPropio(String idUsuario, String idPedido) {
+        Pedido pedido = buscarPedido(idPedido);
         if (!idUsuario.equals(pedido.idUsuario())) {
             throw new ExcepcionNegocio(HttpStatus.FORBIDDEN, "No tienes permisos para ver este pedido.");
         }

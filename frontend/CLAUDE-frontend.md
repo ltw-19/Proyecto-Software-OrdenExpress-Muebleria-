@@ -56,10 +56,15 @@ Una guarda de ruta redirige al ingreso si no hay sesión y bloquea según el rol
 | `POST /api/carrito/items` | CLIENTE | `{idMueble, cantidad}` → 201 carrito (mismo formato). 409 "Stock insuficiente" o mueble ya en el carrito; 404 mueble inexistente |
 | `POST /api/pedidos` | CLIENTE | `{nombre, apellido, telefono, direccion}` (los cuatro obligatorios; dirección ≤ 200). Los ítems salen del carrito guardado, que queda vacío. → 201 `{id, numero, estado, timestamp, items:[{idMueble, codigo, nombre, cantidad, precioUnitarioUsd, precioUnitarioBs, subtotalUsd, subtotalBs}], tasaBcv, totalUsd, totalBs, entrega:{nombre, apellido, telefono, direccion}, enlaceWhatsapp}`. 409 carrito vacío (también el doble clic), "Stock insuficiente" o mueble que ya no existe |
 | `GET /api/pedidos/{id}/preorden` | CLIENTE (dueño) | → 200 PDF (`application/pdf`, archivo `preorden-OE-0001.pdf`); pedirlo con `responseType: 'blob'`. Se puede descargar varias veces sin duplicar. 404 no existe, 403 es de otro cliente |
+| `GET /api/pedidos` | todos | → lista de pedidos (mismo formato que `POST /api/pedidos`), del más reciente al más antiguo. CLIENTE: solo los suyos ("Mis pedidos"); ADMIN y GESTOR: todos ("Pedidos recibidos") |
+| `GET /api/pedidos/{id}` | todos | → detalle (mismo formato). 403 si un CLIENTE pide uno ajeno; 404 no existe |
+| `PUT /api/pedidos/{id}/aprobar` | GESTOR | sin cuerpo → pedido con `estado: "APROBADO"` (descuenta stock). 409 si no está `PENDIENTE` o "Stock insuficiente" (el pedido sigue `PENDIENTE`); 403 para ADMIN y CLIENTE |
+| `PUT /api/pedidos/{id}/rechazar` | GESTOR | sin cuerpo → pedido con `estado: "RECHAZADO"` (no toca stock). 409 si no está `PENDIENTE`; 403 para ADMIN y CLIENTE |
+| `DELETE /api/pedidos/{id}` | CLIENTE, GESTOR | sin cuerpo → 204 sin cuerpo. CLIENTE: solo sus pedidos `PENDIENTE` (ajeno o ya decidido → 403); GESTOR: cualquiera; ADMIN → 403. 404 no existe (también el doble clic). No devuelve stock |
 
 **Flujo del Carrito:** primero `POST /api/pedidos` (registra y devuelve `id` y `enlaceWhatsapp`); luego "Descargar Pre-orden" usa `GET /api/pedidos/{id}/preorden` y "Enviar Pedido a WhatsApp" abre `enlaceWhatsapp` tal cual (el mensaje ya viene armado por el backend).
 
-**Aún no existen en el backend:** `GET /api/tasa`, Eliminar ítem del Carrito, Consultar/Eliminar Pedido y Aprobar/Rechazar. No programes contra ellos hasta que se agreguen aquí.
+**Aún no existen en el backend:** `GET /api/tasa` y Eliminar ítem del Carrito. No programes contra ellos hasta que se agreguen aquí.
 
 ## Formato
 - El precio se envía con **punto decimal** (la interfaz acepta coma y la convierte); máximo 2 decimales y mayor que 0.
@@ -86,5 +91,5 @@ Una guarda de ruta redirige al ingreso si no hay sesión y bloquea según el rol
 
 ## Pendiente (Historias del Sprint 1 restante)
 - [ ] Carrito (CLIENTE) - *Pendiente de endpoint en backend*.
-- [ ] Mis pedidos (CLIENTE) - *Pendiente de endpoint en backend*.
-- [ ] Pedidos recibidos y detalle (ADMIN, GESTOR) - *Pendiente de endpoint en backend*.
+- [ ] Mis pedidos (CLIENTE) - *Endpoints listos en backend (consultar y eliminar)*.
+- [ ] Pedidos recibidos y detalle (ADMIN, GESTOR) - *Endpoints listos en backend (consultar, aprobar/rechazar y eliminar)*.
