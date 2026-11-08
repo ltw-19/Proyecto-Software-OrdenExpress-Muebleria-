@@ -39,6 +39,16 @@ public class MuebleRepositorio {
     }
 
     /**
+     * Leer - modificar - guardar muebles.json bajo un solo candado.
+     * Lo usa Aprobar Pedido para descontar el stock de todos los ítems a la vez.
+     * Si la operación lanza una excepción, el archivo NO cambia (todo o nada).
+     * Las reglas (validar y restar unidades) las pone quien llama, no este repositorio.
+     */
+    public <R> R modificar(Function<List<Mueble>, R> operacion) {
+        return archivos.modificarLista(ARCHIVO, Mueble.class, operacion);
+    }
+
+    /**
      * Agrega un mueble nuevo asignándole el siguiente código (M-001, M-002...).
      * Todo ocurre bajo un mismo candado: si dos personas registran a la vez, cada una
      * recibe un código distinto.
