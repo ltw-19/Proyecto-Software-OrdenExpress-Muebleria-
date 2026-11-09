@@ -5,44 +5,7 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="8a3ce219-89a1-4c19-b5a5-f1d193608cfb" name="Changes" comment="Agregado la historia Registrar Mueble">
-      <change afterPath="$PROJECT_DIR$/.idea/vcs.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/backend/CLAUDE-backend.md" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/backend/src/main/java/com/ordenexpress/orden_express_muebleria/OrdenExpressMuebleriaApplication.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/backend/src/main/java/com/ordenexpress/orden_express_muebleria/configuracion/ConfiguracionSeguridad.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/backend/src/main/java/com/ordenexpress/orden_express_muebleria/controlador/CuentaControlador.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/backend/src/main/java/com/ordenexpress/orden_express_muebleria/controlador/MuebleControlador.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/backend/src/main/java/com/ordenexpress/orden_express_muebleria/dto/CambioRolSolicitud.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/backend/src/main/java/com/ordenexpress/orden_express_muebleria/dto/CuentaRespuesta.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/backend/src/main/java/com/ordenexpress/orden_express_muebleria/dto/IngresoRespuesta.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/backend/src/main/java/com/ordenexpress/orden_express_muebleria/dto/IngresoSolicitud.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/backend/src/main/java/com/ordenexpress/orden_express_muebleria/dto/ModificacionCuentaSolicitud.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/backend/src/main/java/com/ordenexpress/orden_express_muebleria/dto/MuebleRespuesta.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/backend/src/main/java/com/ordenexpress/orden_express_muebleria/dto/MuebleSolicitud.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/backend/src/main/java/com/ordenexpress/orden_express_muebleria/dto/RegistroSolicitud.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/backend/src/main/java/com/ordenexpress/orden_express_muebleria/dto/RespuestaError.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/backend/src/main/java/com/ordenexpress/orden_express_muebleria/excepcion/ExcepcionAlmacenamiento.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/backend/src/main/java/com/ordenexpress/orden_express_muebleria/excepcion/ExcepcionNegocio.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/backend/src/main/java/com/ordenexpress/orden_express_muebleria/excepcion/ManejadorGlobalExcepciones.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/backend/src/main/java/com/ordenexpress/orden_express_muebleria/modelo/EstadoPedido.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/backend/src/main/java/com/ordenexpress/orden_express_muebleria/modelo/Mueble.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/backend/src/main/java/com/ordenexpress/orden_express_muebleria/modelo/Rol.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/backend/src/main/java/com/ordenexpress/orden_express_muebleria/modelo/Usuario.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/backend/src/main/java/com/ordenexpress/orden_express_muebleria/repositorio/MuebleRepositorio.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/backend/src/main/java/com/ordenexpress/orden_express_muebleria/repositorio/UsuarioRepositorio.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/backend/src/main/java/com/ordenexpress/orden_express_muebleria/seguridad/FiltroAutenticacionJwt.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/backend/src/main/java/com/ordenexpress/orden_express_muebleria/seguridad/ServicioJwt.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/backend/src/main/java/com/ordenexpress/orden_express_muebleria/seguridad/UsuarioAutenticado.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/backend/src/main/java/com/ordenexpress/orden_express_muebleria/servicio/ConversionMonedaServicio.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/backend/src/main/java/com/ordenexpress/orden_express_muebleria/servicio/CuentaServicio.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/backend/src/main/java/com/ordenexpress/orden_express_muebleria/servicio/MuebleServicio.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/backend/src/main/java/com/ordenexpress/orden_express_muebleria/servicio/SemillaServicio.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/backend/src/main/java/com/ordenexpress/orden_express_muebleria/util/ServicioArchivoJson.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/backend/src/main/resources/application.properties" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/backend/src/test/java/com/ordenexpress/orden_express_muebleria/OrdenExpressMuebleriaApplicationTests.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/docs/trello/frontend-modulo-cuentas.md" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/backend/.gitattributes" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/backend/.gitignore" beforeDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
