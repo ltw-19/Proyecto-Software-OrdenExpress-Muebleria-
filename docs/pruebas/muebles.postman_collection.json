@@ -1,0 +1,390 @@
+{
+  "info": {
+    "name": "OrdenExpress - Modulo Muebles",
+    "description": "Pruebas de integracion para los endpoints de Gestionar Mueble (Registrar y Consultar)",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:8080"
+    },
+    {
+      "key": "token_admin",
+      "value": ""
+    },
+    {
+      "key": "token_cliente",
+      "value": ""
+    }
+  ],
+  "item": [
+    {
+      "name": "1. Iniciar Sesion como ADMIN",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test(\"Status code is 200\", function () {",
+              "    pm.response.to.have.status(200);",
+              "});",
+              "var jsonData = pm.response.json();",
+              "pm.test(\"Token presente y rol ADMIN\", function () {",
+              "    pm.expect(jsonData.token).to.be.a('string');",
+              "    pm.expect(jsonData.rol).to.eql('ADMIN');",
+              "    pm.collectionVariables.set(\"token_admin\", jsonData.token);",
+              "});"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"correo\": \"admin@ordenexpress.com\",\n  \"clave\": \"Admin2026*\"\n}"
+        },
+        "url": {
+          "raw": "{{baseUrl}}/api/cuentas/ingresar",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "cuentas",
+            "ingresar"
+          ]
+        }
+      }
+    },
+    {
+      "name": "2. Iniciar Sesion como CLIENTE",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test(\"Status code is 200\", function () {",
+              "    pm.response.to.have.status(200);",
+              "});",
+              "var jsonData = pm.response.json();",
+              "pm.test(\"Token presente y rol CLIENTE\", function () {",
+              "    pm.expect(jsonData.token).to.be.a('string');",
+              "    pm.expect(jsonData.rol).to.eql('CLIENTE');",
+              "    pm.collectionVariables.set(\"token_cliente\", jsonData.token);",
+              "});"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"correo\": \"cliente.test@ordenexpress.com\",\n  \"clave\": \"Cliente123*\"\n}"
+        },
+        "url": {
+          "raw": "{{baseUrl}}/api/cuentas/ingresar",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "cuentas",
+            "ingresar"
+          ]
+        }
+      }
+    },
+    {
+      "name": "3. Consultar Catalogo de Muebles (ADMIN - ve unidades)",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test(\"Status code is 200\", function () {",
+              "    pm.response.to.have.status(200);",
+              "});",
+              "var jsonData = pm.response.json();",
+              "pm.test(\"Retorna lista de muebles con stock visible\", function () {",
+              "    pm.expect(jsonData).to.be.an('array');",
+              "    pm.expect(jsonData.length).to.be.above(0);",
+              "    pm.expect(jsonData[0]).to.have.property('codigo');",
+              "    pm.expect(jsonData[0]).to.have.property('precioBs');",
+              "    pm.expect(jsonData[0]).to.have.property('unidades');",
+              "    pm.expect(jsonData[0].unidades).to.not.be.null;",
+              "});"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{token_admin}}"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/muebles",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "muebles"
+          ]
+        }
+      }
+    },
+    {
+      "name": "4. Consultar Catalogo como CLIENTE (unidades ocultas)",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test(\"Status code is 200\", function () {",
+              "    pm.response.to.have.status(200);",
+              "});",
+              "var jsonData = pm.response.json();",
+              "pm.test(\"Unidades ocultas (null) y disponible booleano\", function () {",
+              "    pm.expect(jsonData).to.be.an('array');",
+              "    pm.expect(jsonData.length).to.be.above(0);",
+              "    pm.expect(jsonData[0].unidades).to.be.null;",
+              "    pm.expect(jsonData[0].disponible).to.be.a('boolean');",
+              "});"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{token_cliente}}"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/muebles",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "muebles"
+          ]
+        }
+      }
+    },
+    {
+      "name": "5. Consultar Lista de Categorias",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test(\"Status code is 200\", function () {",
+              "    pm.response.to.have.status(200);",
+              "});",
+              "var jsonData = pm.response.json();",
+              "pm.test(\"Lista de categorias presentes\", function () {",
+              "    pm.expect(jsonData).to.be.an('array');",
+              "    pm.expect(jsonData).to.include('Sala');",
+              "});"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{token_cliente}}"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/muebles/categorias",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "muebles",
+            "categorias"
+          ]
+        }
+      }
+    },
+    {
+      "name": "6. Filtrar Muebles por Busqueda y Categoria",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test(\"Status code is 200\", function () {",
+              "    pm.response.to.have.status(200);",
+              "});",
+              "var jsonData = pm.response.json();",
+              "pm.test(\"Coincidencias filtradas\", function () {",
+              "    pm.expect(jsonData).to.be.an('array');",
+              "    jsonData.forEach(function(item) {",
+              "        pm.expect(item.categoria.toLowerCase()).to.eql('sala');",
+              "    });",
+              "});"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{token_admin}}"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/muebles?busqueda=sofa&categoria=Sala",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "muebles"
+          ],
+          "query": [
+            {
+              "key": "busqueda",
+              "value": "sofa"
+            },
+            {
+              "key": "categoria",
+              "value": "Sala"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "name": "7. Registrar Mueble (ADMIN)",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test(\"Status code is 201 Created\", function () {",
+              "    pm.response.to.have.status(201);",
+              "});",
+              "var jsonData = pm.response.json();",
+              "pm.test(\"Mueble registrado con codigo valido\", function () {",
+              "    pm.expect(jsonData.codigo).to.match(/^M-\\d{3,}$/);",
+              "    pm.expect(jsonData.precioBs).to.be.above(0);",
+              "    pm.expect(jsonData.nombre).to.eql('Poltrona Minimalista');",
+              "});"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{token_admin}}"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"nombre\": \"Poltrona Minimalista\",\n  \"categoria\": \"Sala\",\n  \"descripcion\": \"Poltrona ergonomica con estructura de nogal y tapiceria premium en lino.\",\n  \"dimensiones\": {\n    \"ancho\": 75.0,\n    \"alto\": 85.0,\n    \"profundidad\": 80.0\n  },\n  \"material\": \"Madera de nogal y lino\",\n  \"urlFoto\": \"https://placehold.co/600x400/8D6E63/FFFFFF/png?text=Poltrona\",\n  \"precioUsd\": 210.00,\n  \"unidades\": 5\n}"
+        },
+        "url": {
+          "raw": "{{baseUrl}}/api/muebles",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "muebles"
+          ]
+        }
+      }
+    },
+    {
+      "name": "8. Registrar Mueble como CLIENTE (Debe rechazar 403)",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test(\"Status code is 403 Forbidden\", function () {",
+              "    pm.response.to.have.status(403);",
+              "});",
+              "var jsonData = pm.response.json();",
+              "pm.test(\"Mensaje de error en espanol\", function () {",
+              "    pm.expect(jsonData.mensaje).to.include(\"No tienes permisos\");",
+              "});"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{token_cliente}}"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"nombre\": \"Mueble No Autorizado\",\n  \"categoria\": \"Sala\",\n  \"descripcion\": \"Intento de registro sin permisos de gestor o admin.\",\n  \"dimensiones\": {\n    \"ancho\": 50.0,\n    \"alto\": 50.0,\n    \"profundidad\": 50.0\n  },\n  \"material\": \"Pino\",\n  \"urlFoto\": \"https://placehold.co/600x400/png\",\n  \"precioUsd\": 100.00,\n  \"unidades\": 1\n}"
+        },
+        "url": {
+          "raw": "{{baseUrl}}/api/muebles",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "muebles"
+          ]
+        }
+      }
+    }
+  ]
+}

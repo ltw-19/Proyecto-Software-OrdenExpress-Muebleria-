@@ -1,0 +1,1441 @@
+{
+  "info": {
+    "name": "OrdenExpress - Modulo Pedido - Eliminar Pedido",
+    "description": "Pruebas de integracion para la historia Eliminar Pedido (DELETE /api/pedidos/{id}). Ejecutar en orden con el backend en el puerto 8080 y los usuarios semilla (ADMIN y GESTOR). Reglas: el CLIENTE solo elimina sus pedidos PENDIENTES (si no, 403); el GESTOR elimina cualquiera; el ADMIN no elimina (403); eliminar no devuelve stock. Cada corrida descuenta 1 unidad del mueble de mas stock (pedido aprobado).",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "1. Registrar CLIENTE A para la prueba",
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "exec": [
+              "// Correo unico en cada corrida para que la coleccion se pueda repetir.",
+              "pm.collectionVariables.set(\"correo_cliente\", \"eliminar.cliente.\" + Date.now() + \"@ordenexpress.com\");"
+            ],
+            "type": "text/javascript"
+          }
+        },
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test(\"Status code is 201 Created\", function () {",
+              "    pm.response.to.have.status(201);",
+              "});"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/cuentas/registro",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "cuentas",
+            "registro"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"nombre\": \"Cliente\",\n  \"apellido\": \"Eliminar\",\n  \"correo\": \"{{correo_cliente}}\",\n  \"clave\": \"Cliente123*\",\n  \"telefono\": \"04121234567\"\n}"
+        }
+      }
+    },
+    {
+      "name": "2. Iniciar Sesion como CLIENTE A",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test(\"Status code is 200 OK\", function () {",
+              "    pm.response.to.have.status(200);",
+              "});",
+              "pm.collectionVariables.set(\"token_cliente\", pm.response.json().token);"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/cuentas/ingresar",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "cuentas",
+            "ingresar"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"correo\": \"{{correo_cliente}}\",\n  \"clave\": \"Cliente123*\"\n}"
+        }
+      }
+    },
+    {
+      "name": "3. Registrar CLIENTE B",
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "exec": [
+              "// Correo unico en cada corrida para que la coleccion se pueda repetir.",
+              "pm.collectionVariables.set(\"correo_cliente_b\", \"eliminar.cliente.b.\" + Date.now() + \"@ordenexpress.com\");"
+            ],
+            "type": "text/javascript"
+          }
+        },
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test(\"Status code is 201 Created\", function () {",
+              "    pm.response.to.have.status(201);",
+              "});"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/cuentas/registro",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "cuentas",
+            "registro"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"nombre\": \"Cliente\",\n  \"apellido\": \"Eliminar\",\n  \"correo\": \"{{correo_cliente_b}}\",\n  \"clave\": \"Cliente123*\",\n  \"telefono\": \"04121234567\"\n}"
+        }
+      }
+    },
+    {
+      "name": "4. Iniciar Sesion como CLIENTE B",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test(\"Status code is 200 OK\", function () {",
+              "    pm.response.to.have.status(200);",
+              "});",
+              "pm.collectionVariables.set(\"token_cliente_b\", pm.response.json().token);"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/cuentas/ingresar",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "cuentas",
+            "ingresar"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"correo\": \"{{correo_cliente_b}}\",\n  \"clave\": \"Cliente123*\"\n}"
+        }
+      }
+    },
+    {
+      "name": "5. Iniciar Sesion como GESTOR",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test(\"Status code is 200 OK\", function () {",
+              "    pm.response.to.have.status(200);",
+              "});",
+              "pm.collectionVariables.set(\"token_gestor\", pm.response.json().token);"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/cuentas/ingresar",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "cuentas",
+            "ingresar"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"correo\": \"gestor@ordenexpress.com\",\n  \"clave\": \"Gestor2026*\"\n}"
+        }
+      }
+    },
+    {
+      "name": "6. Iniciar Sesion como ADMIN",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test(\"Status code is 200 OK\", function () {",
+              "    pm.response.to.have.status(200);",
+              "});",
+              "pm.collectionVariables.set(\"token_admin\", pm.response.json().token);"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/cuentas/ingresar",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "cuentas",
+            "ingresar"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"correo\": \"admin@ordenexpress.com\",\n  \"clave\": \"Admin2026*\"\n}"
+        }
+      }
+    },
+    {
+      "name": "7. Consultar catalogo (GESTOR) para elegir un mueble con stock",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test(\"Status code is 200 OK\", function () {",
+              "    pm.response.to.have.status(200);",
+              "});",
+              "// Se usa el mueble de MAS stock: la prueba registra 4 pedidos de 1 unidad y aprueba uno.",
+              "var conStock = pm.response.json().filter(function (m) { return m.unidades >= 4; });",
+              "conStock.sort(function (a, b) { return b.unidades - a.unidades; });",
+              "pm.test(\"Hay un mueble con al menos 4 unidades\", function () {",
+              "    pm.expect(conStock.length).to.be.at.least(1);",
+              "});",
+              "pm.collectionVariables.set(\"id_mueble\", conStock[0].id);",
+              "pm.collectionVariables.set(\"stock_tras_aprobar\", conStock[0].unidades - 1);"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{token_gestor}}"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/muebles",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "muebles"
+          ]
+        }
+      }
+    },
+    {
+      "name": "8. CLIENTE A anade el mueble al carrito (cantidad 1) - 201",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test(\"Status code is 201 Created\", function () {",
+              "    pm.response.to.have.status(201);",
+              "});"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer {{token_cliente}}"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/carrito/items",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "carrito",
+            "items"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"idMueble\": \"{{id_mueble}}\",\n  \"cantidad\": 1\n}"
+        }
+      }
+    },
+    {
+      "name": "9. CLIENTE A registra el pedido 1 - 201 PENDIENTE",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test(\"Status code is 201 Created\", function () {",
+              "    pm.response.to.have.status(201);",
+              "});",
+              "pm.collectionVariables.set(\"id_pedido_1\", pm.response.json().id);"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer {{token_cliente}}"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/pedidos",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "pedidos"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"nombre\": \"Cliente\",\n  \"apellido\": \"Eliminar\",\n  \"telefono\": \"04121234567\",\n  \"direccion\": \"Av. Principal, Caracas\"\n}"
+        }
+      }
+    },
+    {
+      "name": "10. CLIENTE A anade el mueble al carrito (cantidad 1) - 201",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test(\"Status code is 201 Created\", function () {",
+              "    pm.response.to.have.status(201);",
+              "});"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer {{token_cliente}}"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/carrito/items",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "carrito",
+            "items"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"idMueble\": \"{{id_mueble}}\",\n  \"cantidad\": 1\n}"
+        }
+      }
+    },
+    {
+      "name": "11. CLIENTE A registra el pedido 2 - 201 PENDIENTE",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test(\"Status code is 201 Created\", function () {",
+              "    pm.response.to.have.status(201);",
+              "});",
+              "pm.collectionVariables.set(\"id_pedido_2\", pm.response.json().id);"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer {{token_cliente}}"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/pedidos",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "pedidos"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"nombre\": \"Cliente\",\n  \"apellido\": \"Eliminar\",\n  \"telefono\": \"04121234567\",\n  \"direccion\": \"Av. Principal, Caracas\"\n}"
+        }
+      }
+    },
+    {
+      "name": "12. CLIENTE A anade el mueble al carrito (cantidad 1) - 201",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test(\"Status code is 201 Created\", function () {",
+              "    pm.response.to.have.status(201);",
+              "});"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer {{token_cliente}}"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/carrito/items",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "carrito",
+            "items"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"idMueble\": \"{{id_mueble}}\",\n  \"cantidad\": 1\n}"
+        }
+      }
+    },
+    {
+      "name": "13. CLIENTE A registra el pedido 3 - 201 PENDIENTE",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test(\"Status code is 201 Created\", function () {",
+              "    pm.response.to.have.status(201);",
+              "});",
+              "pm.collectionVariables.set(\"id_pedido_3\", pm.response.json().id);"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer {{token_cliente}}"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/pedidos",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "pedidos"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"nombre\": \"Cliente\",\n  \"apellido\": \"Eliminar\",\n  \"telefono\": \"04121234567\",\n  \"direccion\": \"Av. Principal, Caracas\"\n}"
+        }
+      }
+    },
+    {
+      "name": "14. CLIENTE B anade el mueble al carrito (cantidad 1) - 201",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test(\"Status code is 201 Created\", function () {",
+              "    pm.response.to.have.status(201);",
+              "});"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer {{token_cliente_b}}"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/carrito/items",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "carrito",
+            "items"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"idMueble\": \"{{id_mueble}}\",\n  \"cantidad\": 1\n}"
+        }
+      }
+    },
+    {
+      "name": "15. CLIENTE B registra el pedido 4 - 201 PENDIENTE",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test(\"Status code is 201 Created\", function () {",
+              "    pm.response.to.have.status(201);",
+              "});",
+              "pm.collectionVariables.set(\"id_pedido_4\", pm.response.json().id);"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer {{token_cliente_b}}"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/pedidos",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "pedidos"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"nombre\": \"Cliente\",\n  \"apellido\": \"Eliminar\",\n  \"telefono\": \"04121234567\",\n  \"direccion\": \"Av. Principal, Caracas\"\n}"
+        }
+      }
+    },
+    {
+      "name": "16. Eliminar sin token (Debe rechazar 401)",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test(\"Status code is 401 Unauthorized\", function () {",
+              "    pm.response.to.have.status(401);",
+              "});"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ],
+      "request": {
+        "method": "DELETE",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/api/pedidos/{{id_pedido_4}}",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "pedidos",
+            "{{id_pedido_4}}"
+          ]
+        }
+      }
+    },
+    {
+      "name": "17. ADMIN intenta eliminar (Debe rechazar 403, el ADMIN no elimina)",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test(\"Status code is 403 Forbidden\", function () {",
+              "    pm.response.to.have.status(403);",
+              "});"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ],
+      "request": {
+        "method": "DELETE",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{token_admin}}"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/pedidos/{{id_pedido_4}}",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "pedidos",
+            "{{id_pedido_4}}"
+          ]
+        }
+      }
+    },
+    {
+      "name": "18. CLIENTE A intenta eliminar el pedido de B (Debe rechazar 403)",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test(\"Status code is 403 Forbidden\", function () {",
+              "    pm.response.to.have.status(403);",
+              "});",
+              "pm.test(\"Responde {mensaje} con el motivo\", function () {",
+              "    pm.expect(pm.response.json().mensaje).to.include(\"No tienes permisos\");",
+              "});"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ],
+      "request": {
+        "method": "DELETE",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{token_cliente}}"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/pedidos/{{id_pedido_4}}",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "pedidos",
+            "{{id_pedido_4}}"
+          ]
+        }
+      }
+    },
+    {
+      "name": "19. CLIENTE A elimina un pedido que no existe - 404",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test(\"Status code is 404 Not Found\", function () {",
+              "    pm.response.to.have.status(404);",
+              "});",
+              "pm.test(\"Responde {mensaje} con el motivo\", function () {",
+              "    pm.expect(pm.response.json().mensaje).to.include(\"no existe\");",
+              "});"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ],
+      "request": {
+        "method": "DELETE",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{token_cliente}}"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/pedidos/00000000-0000-0000-0000-000000000000",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "pedidos",
+            "00000000-0000-0000-0000-000000000000"
+          ]
+        }
+      }
+    },
+    {
+      "name": "20. CLIENTE A elimina su pedido 1 PENDIENTE - 204",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test(\"Status code is 204 No Content\", function () {",
+              "    pm.response.to.have.status(204);",
+              "});",
+              "pm.test(\"204 sin cuerpo\", function () {",
+              "    pm.expect(pm.response.text()).to.eql(\"\");",
+              "});"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ],
+      "request": {
+        "method": "DELETE",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{token_cliente}}"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/pedidos/{{id_pedido_1}}",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "pedidos",
+            "{{id_pedido_1}}"
+          ]
+        }
+      }
+    },
+    {
+      "name": "21. CLIENTE A consulta el pedido 1 eliminado - 404",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test(\"Status code is 404 Not Found\", function () {",
+              "    pm.response.to.have.status(404);",
+              "});"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{token_cliente}}"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/pedidos/{{id_pedido_1}}",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "pedidos",
+            "{{id_pedido_1}}"
+          ]
+        }
+      }
+    },
+    {
+      "name": "22. CLIENTE A elimina el pedido 1 otra vez (doble clic) - 404",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test(\"Status code is 404 Not Found\", function () {",
+              "    pm.response.to.have.status(404);",
+              "});"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ],
+      "request": {
+        "method": "DELETE",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{token_cliente}}"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/pedidos/{{id_pedido_1}}",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "pedidos",
+            "{{id_pedido_1}}"
+          ]
+        }
+      }
+    },
+    {
+      "name": "23. GESTOR aprueba el pedido 2 - 200 (descuenta 1 unidad)",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test(\"Status code is 200 OK\", function () {",
+              "    pm.response.to.have.status(200);",
+              "});"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ],
+      "request": {
+        "method": "PUT",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{token_gestor}}"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/pedidos/{{id_pedido_2}}/aprobar",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "pedidos",
+            "{{id_pedido_2}}",
+            "aprobar"
+          ]
+        }
+      }
+    },
+    {
+      "name": "24. Stock despues de aprobar el pedido 2",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test(\"Status code is 200 OK\", function () {",
+              "    pm.response.to.have.status(200);",
+              "});",
+              "var m = pm.response.json().find(function (x) { return x.id === pm.collectionVariables.get(\"id_mueble\"); });",
+              "pm.test(\"Se desconto 1 unidad\", function () {",
+              "    pm.expect(m.unidades).to.eql(Number(pm.collectionVariables.get(\"stock_tras_aprobar\")));",
+              "});"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{token_gestor}}"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/muebles",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "muebles"
+          ]
+        }
+      }
+    },
+    {
+      "name": "25. CLIENTE A intenta eliminar su pedido 2 APROBADO (Debe rechazar 403)",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test(\"Status code is 403 Forbidden\", function () {",
+              "    pm.response.to.have.status(403);",
+              "});",
+              "pm.test(\"Responde {mensaje} con el motivo\", function () {",
+              "    pm.expect(pm.response.json().mensaje).to.include(\"PENDIENTES\");",
+              "});"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ],
+      "request": {
+        "method": "DELETE",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{token_cliente}}"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/pedidos/{{id_pedido_2}}",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "pedidos",
+            "{{id_pedido_2}}"
+          ]
+        }
+      }
+    },
+    {
+      "name": "26. GESTOR rechaza el pedido 3 - 200",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test(\"Status code is 200 OK\", function () {",
+              "    pm.response.to.have.status(200);",
+              "});"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ],
+      "request": {
+        "method": "PUT",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{token_gestor}}"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/pedidos/{{id_pedido_3}}/rechazar",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "pedidos",
+            "{{id_pedido_3}}",
+            "rechazar"
+          ]
+        }
+      }
+    },
+    {
+      "name": "27. CLIENTE A intenta eliminar su pedido 3 RECHAZADO (Debe rechazar 403)",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test(\"Status code is 403 Forbidden\", function () {",
+              "    pm.response.to.have.status(403);",
+              "});",
+              "pm.test(\"Responde {mensaje} con el motivo\", function () {",
+              "    pm.expect(pm.response.json().mensaje).to.include(\"PENDIENTES\");",
+              "});"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ],
+      "request": {
+        "method": "DELETE",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{token_cliente}}"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/pedidos/{{id_pedido_3}}",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "pedidos",
+            "{{id_pedido_3}}"
+          ]
+        }
+      }
+    },
+    {
+      "name": "28. GESTOR elimina el pedido 2 APROBADO - 204",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test(\"Status code is 204 No Content\", function () {",
+              "    pm.response.to.have.status(204);",
+              "});",
+              "pm.test(\"204 sin cuerpo\", function () {",
+              "    pm.expect(pm.response.text()).to.eql(\"\");",
+              "});"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ],
+      "request": {
+        "method": "DELETE",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{token_gestor}}"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/pedidos/{{id_pedido_2}}",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "pedidos",
+            "{{id_pedido_2}}"
+          ]
+        }
+      }
+    },
+    {
+      "name": "29. Stock despues de eliminar el pedido APROBADO: NO se devuelve",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test(\"Status code is 200 OK\", function () {",
+              "    pm.response.to.have.status(200);",
+              "});",
+              "var m = pm.response.json().find(function (x) { return x.id === pm.collectionVariables.get(\"id_mueble\"); });",
+              "pm.test(\"Las unidades siguen descontadas\", function () {",
+              "    pm.expect(m.unidades).to.eql(Number(pm.collectionVariables.get(\"stock_tras_aprobar\")));",
+              "});"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{token_gestor}}"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/muebles",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "muebles"
+          ]
+        }
+      }
+    },
+    {
+      "name": "30. GESTOR elimina el pedido 3 RECHAZADO - 204",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test(\"Status code is 204 No Content\", function () {",
+              "    pm.response.to.have.status(204);",
+              "});"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ],
+      "request": {
+        "method": "DELETE",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{token_gestor}}"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/pedidos/{{id_pedido_3}}",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "pedidos",
+            "{{id_pedido_3}}"
+          ]
+        }
+      }
+    },
+    {
+      "name": "31. GESTOR elimina el pedido 4 PENDIENTE de CLIENTE B - 204",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test(\"Status code is 204 No Content\", function () {",
+              "    pm.response.to.have.status(204);",
+              "});"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ],
+      "request": {
+        "method": "DELETE",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{token_gestor}}"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/pedidos/{{id_pedido_4}}",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "pedidos",
+            "{{id_pedido_4}}"
+          ]
+        }
+      }
+    },
+    {
+      "name": "32. CLIENTE A consulta sus pedidos - ya no aparecen los eliminados",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test(\"Status code is 200 OK\", function () {",
+              "    pm.response.to.have.status(200);",
+              "});",
+              "var ids = pm.response.json().map(function (p) { return p.id; });",
+              "pm.test(\"Los pedidos eliminados ya no aparecen\", function () {",
+              "    pm.expect(ids).to.not.include(pm.collectionVariables.get(\"id_pedido_1\"));",
+              "    pm.expect(ids).to.not.include(pm.collectionVariables.get(\"id_pedido_2\"));",
+              "    pm.expect(ids).to.not.include(pm.collectionVariables.get(\"id_pedido_3\"));",
+              "});"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{token_cliente}}"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/pedidos",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "pedidos"
+          ]
+        }
+      }
+    },
+    {
+      "name": "33. CLIENTE B consulta sus pedidos - ya no aparece el 4",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test(\"Status code is 200 OK\", function () {",
+              "    pm.response.to.have.status(200);",
+              "});",
+              "var ids = pm.response.json().map(function (p) { return p.id; });",
+              "pm.test(\"Los pedidos eliminados ya no aparecen\", function () {",
+              "    pm.expect(ids).to.not.include(pm.collectionVariables.get(\"id_pedido_4\"));",
+              "});"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{token_cliente_b}}"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/pedidos",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "pedidos"
+          ]
+        }
+      }
+    },
+    {
+      "name": "34. GESTOR consulta la bandeja global - ya no aparece ninguno",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test(\"Status code is 200 OK\", function () {",
+              "    pm.response.to.have.status(200);",
+              "});",
+              "var ids = pm.response.json().map(function (p) { return p.id; });",
+              "pm.test(\"Los pedidos eliminados ya no aparecen\", function () {",
+              "    pm.expect(ids).to.not.include(pm.collectionVariables.get(\"id_pedido_1\"));",
+              "    pm.expect(ids).to.not.include(pm.collectionVariables.get(\"id_pedido_2\"));",
+              "    pm.expect(ids).to.not.include(pm.collectionVariables.get(\"id_pedido_3\"));",
+              "    pm.expect(ids).to.not.include(pm.collectionVariables.get(\"id_pedido_4\"));",
+              "});"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{token_gestor}}"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/pedidos",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "pedidos"
+          ]
+        }
+      }
+    }
+  ],
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:8080"
+    },
+    {
+      "key": "token_cliente",
+      "value": ""
+    },
+    {
+      "key": "token_cliente_b",
+      "value": ""
+    },
+    {
+      "key": "token_gestor",
+      "value": ""
+    },
+    {
+      "key": "token_admin",
+      "value": ""
+    },
+    {
+      "key": "correo_cliente",
+      "value": ""
+    },
+    {
+      "key": "correo_cliente_b",
+      "value": ""
+    },
+    {
+      "key": "id_mueble",
+      "value": ""
+    },
+    {
+      "key": "stock_tras_aprobar",
+      "value": ""
+    },
+    {
+      "key": "id_pedido_1",
+      "value": ""
+    },
+    {
+      "key": "id_pedido_2",
+      "value": ""
+    },
+    {
+      "key": "id_pedido_3",
+      "value": ""
+    },
+    {
+      "key": "id_pedido_4",
+      "value": ""
+    }
+  ]
+}

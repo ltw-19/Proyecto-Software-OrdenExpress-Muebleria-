@@ -1,0 +1,1821 @@
+{
+  "info": {
+    "name": "OrdenExpress - Modulo Pedido - Consultar Pedido (con Aprobar y Rechazar)",
+    "description": "Pruebas de integracion para la historia Consultar Pedido: GET /api/pedidos, GET /api/pedidos/{id}, PUT /api/pedidos/{id}/aprobar y PUT /api/pedidos/{id}/rechazar. Ejecutar en orden con el backend en el puerto 8080 y los usuarios semilla (ADMIN y GESTOR). AVISO: el bloque final aprueba un pedido con TODO el stock del mueble de menos unidades, que queda en 0. Para recuperar el stock, borrar la carpeta datos/ y reiniciar el backend.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "1. Registrar CLIENTE A para la prueba",
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "exec": [
+              "// Correo unico en cada corrida para que la coleccion se pueda repetir.",
+              "pm.collectionVariables.set(\"correo_cliente\", \"consulta.cliente.\" + Date.now() + \"@ordenexpress.com\");"
+            ],
+            "type": "text/javascript"
+          }
+        },
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test(\"Status code is 201 Created\", function () {",
+              "    pm.response.to.have.status(201);",
+              "});"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/cuentas/registro",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "cuentas",
+            "registro"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"nombre\": \"Cliente\",\n  \"apellido\": \"Consulta\",\n  \"correo\": \"{{correo_cliente}}\",\n  \"clave\": \"Cliente123*\",\n  \"telefono\": \"04121234567\"\n}"
+        }
+      }
+    },
+    {
+      "name": "2. Iniciar Sesion como CLIENTE A",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test(\"Status code is 200 OK\", function () {",
+              "    pm.response.to.have.status(200);",
+              "});",
+              "pm.collectionVariables.set(\"token_cliente\", pm.response.json().token);"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/cuentas/ingresar",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "cuentas",
+            "ingresar"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"correo\": \"{{correo_cliente}}\",\n  \"clave\": \"Cliente123*\"\n}"
+        }
+      }
+    },
+    {
+      "name": "3. Registrar CLIENTE B",
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "exec": [
+              "// Correo unico en cada corrida para que la coleccion se pueda repetir.",
+              "pm.collectionVariables.set(\"correo_cliente_b\", \"consulta.cliente.b.\" + Date.now() + \"@ordenexpress.com\");"
+            ],
+            "type": "text/javascript"
+          }
+        },
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test(\"Status code is 201 Created\", function () {",
+              "    pm.response.to.have.status(201);",
+              "});"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/cuentas/registro",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "cuentas",
+            "registro"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"nombre\": \"Cliente\",\n  \"apellido\": \"Consulta\",\n  \"correo\": \"{{correo_cliente_b}}\",\n  \"clave\": \"Cliente123*\",\n  \"telefono\": \"04121234567\"\n}"
+        }
+      }
+    },
+    {
+      "name": "4. Iniciar Sesion como CLIENTE B",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test(\"Status code is 200 OK\", function () {",
+              "    pm.response.to.have.status(200);",
+              "});",
+              "pm.collectionVariables.set(\"token_cliente_b\", pm.response.json().token);"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/cuentas/ingresar",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "cuentas",
+            "ingresar"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"correo\": \"{{correo_cliente_b}}\",\n  \"clave\": \"Cliente123*\"\n}"
+        }
+      }
+    },
+    {
+      "name": "5. Iniciar Sesion como GESTOR",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test(\"Status code is 200 OK\", function () {",
+              "    pm.response.to.have.status(200);",
+              "});",
+              "pm.collectionVariables.set(\"token_gestor\", pm.response.json().token);"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/cuentas/ingresar",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "cuentas",
+            "ingresar"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"correo\": \"gestor@ordenexpress.com\",\n  \"clave\": \"Gestor2026*\"\n}"
+        }
+      }
+    },
+    {
+      "name": "6. Iniciar Sesion como ADMIN",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test(\"Status code is 200 OK\", function () {",
+              "    pm.response.to.have.status(200);",
+              "});",
+              "pm.collectionVariables.set(\"token_admin\", pm.response.json().token);"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/cuentas/ingresar",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "cuentas",
+            "ingresar"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"correo\": \"admin@ordenexpress.com\",\n  \"clave\": \"Admin2026*\"\n}"
+        }
+      }
+    },
+    {
+      "name": "7. Consultar catalogo (GESTOR) para elegir muebles y guardar su stock",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test(\"Status code is 200 OK\", function () {",
+              "    pm.response.to.have.status(200);",
+              "});",
+              "// Mueble principal: el de MAS stock (necesita al menos 2 unidades).",
+              "// Mueble escaso: el de MENOS stock (>= 1), para probar 'Stock insuficiente' al aprobar.",
+              "var conStock = pm.response.json().filter(function (m) { return m.unidades >= 1; });",
+              "conStock.sort(function (a, b) { return b.unidades - a.unidades; });",
+              "pm.test(\"Hay al menos dos muebles con stock y uno con 2 o mas unidades\", function () {",
+              "    pm.expect(conStock.length).to.be.at.least(2);",
+              "    pm.expect(conStock[0].unidades).to.be.at.least(2);",
+              "});",
+              "pm.collectionVariables.set(\"id_mueble\", conStock[0].id);",
+              "pm.collectionVariables.set(\"stock_inicial\", conStock[0].unidades);",
+              "pm.collectionVariables.set(\"stock_tras_aprobar\", conStock[0].unidades - 1);",
+              "var escaso = conStock[conStock.length - 1];",
+              "pm.collectionVariables.set(\"id_mueble_escaso\", escaso.id);",
+              "pm.collectionVariables.set(\"stock_escaso\", escaso.unidades);"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{token_gestor}}"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/muebles",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "muebles"
+          ]
+        }
+      }
+    },
+    {
+      "name": "8. CLIENTE A anade el mueble principal (cantidad 1) - 201",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test(\"Status code is 201 Created\", function () {",
+              "    pm.response.to.have.status(201);",
+              "});"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer {{token_cliente}}"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/carrito/items",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "carrito",
+            "items"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"idMueble\": \"{{id_mueble}}\",\n  \"cantidad\": 1\n}"
+        }
+      }
+    },
+    {
+      "name": "9. CLIENTE A registra el pedido 1 - 201",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test(\"Status code is 201 Created\", function () {",
+              "    pm.response.to.have.status(201);",
+              "});",
+              "pm.test(\"Nace PENDIENTE\", function () {",
+              "    pm.expect(pm.response.json().estado).to.eql(\"PENDIENTE\");",
+              "});",
+              "pm.collectionVariables.set(\"id_pedido\", pm.response.json().id);"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer {{token_cliente}}"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/pedidos",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "pedidos"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"nombre\": \"Cliente\",\n  \"apellido\": \"Consulta\",\n  \"telefono\": \"04121234567\",\n  \"direccion\": \"Av. Principal, Caracas\"\n}"
+        }
+      }
+    },
+    {
+      "name": "10. CLIENTE A anade el mueble principal otra vez (cantidad 1) - 201",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test(\"Status code is 201 Created\", function () {",
+              "    pm.response.to.have.status(201);",
+              "});"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer {{token_cliente}}"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/carrito/items",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "carrito",
+            "items"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"idMueble\": \"{{id_mueble}}\",\n  \"cantidad\": 1\n}"
+        }
+      }
+    },
+    {
+      "name": "11. CLIENTE A registra el pedido 2 - 201",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test(\"Status code is 201 Created\", function () {",
+              "    pm.response.to.have.status(201);",
+              "});",
+              "pm.test(\"Nace PENDIENTE\", function () {",
+              "    pm.expect(pm.response.json().estado).to.eql(\"PENDIENTE\");",
+              "});",
+              "pm.collectionVariables.set(\"id_pedido_2\", pm.response.json().id);"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer {{token_cliente}}"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/pedidos",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "pedidos"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"nombre\": \"Cliente\",\n  \"apellido\": \"Consulta\",\n  \"telefono\": \"04121234567\",\n  \"direccion\": \"Av. Principal, Caracas\"\n}"
+        }
+      }
+    },
+    {
+      "name": "12. Consultar pedidos sin token (Debe rechazar 401)",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test(\"Status code is 401 Unauthorized\", function () {",
+              "    pm.response.to.have.status(401);",
+              "});"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/api/pedidos",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "pedidos"
+          ]
+        }
+      }
+    },
+    {
+      "name": "13. CLIENTE A consulta sus pedidos - 200, mas reciente primero",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test(\"Status code is 200 OK\", function () {",
+              "    pm.response.to.have.status(200);",
+              "});",
+              "var lista = pm.response.json();",
+              "var ids = lista.map(function (p) { return p.id; });",
+              "pm.test(\"Trae sus dos pedidos, el 2 antes que el 1\", function () {",
+              "    pm.expect(lista.length).to.eql(2);",
+              "    pm.expect(ids[0]).to.eql(pm.collectionVariables.get(\"id_pedido_2\"));",
+              "    pm.expect(ids[1]).to.eql(pm.collectionVariables.get(\"id_pedido\"));",
+              "});",
+              "pm.test(\"Cada pedido trae montos congelados y no expone idUsuario\", function () {",
+              "    lista.forEach(function (p) {",
+              "        pm.expect(p).to.have.property(\"totalUsd\");",
+              "        pm.expect(p).to.have.property(\"totalBs\");",
+              "        pm.expect(p).to.have.property(\"tasaBcv\");",
+              "        pm.expect(p).to.not.have.property(\"idUsuario\");",
+              "    });",
+              "});"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{token_cliente}}"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/pedidos",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "pedidos"
+          ]
+        }
+      }
+    },
+    {
+      "name": "14. CLIENTE B consulta sus pedidos - 200, no ve los de A",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test(\"Status code is 200 OK\", function () {",
+              "    pm.response.to.have.status(200);",
+              "});",
+              "pm.test(\"La lista de B no incluye pedidos de A\", function () {",
+              "    var ids = pm.response.json().map(function (p) { return p.id; });",
+              "    pm.expect(ids).to.not.include(pm.collectionVariables.get(\"id_pedido\"));",
+              "    pm.expect(ids).to.not.include(pm.collectionVariables.get(\"id_pedido_2\"));",
+              "});"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{token_cliente_b}}"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/pedidos",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "pedidos"
+          ]
+        }
+      }
+    },
+    {
+      "name": "15. GESTOR consulta la bandeja global - 200, incluye los pedidos de A",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test(\"Status code is 200 OK\", function () {",
+              "    pm.response.to.have.status(200);",
+              "});",
+              "pm.test(\"La bandeja incluye los pedidos de otros clientes\", function () {",
+              "    var ids = pm.response.json().map(function (p) { return p.id; });",
+              "    pm.expect(ids).to.include(pm.collectionVariables.get(\"id_pedido\"));",
+              "    pm.expect(ids).to.include(pm.collectionVariables.get(\"id_pedido_2\"));",
+              "});",
+              "pm.test(\"Ordenada del mas reciente al mas antiguo\", function () {",
+              "    var t = pm.response.json().map(function (p) { return p.timestamp; });",
+              "    for (var i = 1; i < t.length; i++) { pm.expect(t[i - 1] >= t[i]).to.be.true; }",
+              "});"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{token_gestor}}"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/pedidos",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "pedidos"
+          ]
+        }
+      }
+    },
+    {
+      "name": "16. ADMIN consulta la bandeja global - 200, incluye los pedidos de A",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test(\"Status code is 200 OK\", function () {",
+              "    pm.response.to.have.status(200);",
+              "});",
+              "pm.test(\"La bandeja incluye los pedidos de otros clientes\", function () {",
+              "    var ids = pm.response.json().map(function (p) { return p.id; });",
+              "    pm.expect(ids).to.include(pm.collectionVariables.get(\"id_pedido\"));",
+              "    pm.expect(ids).to.include(pm.collectionVariables.get(\"id_pedido_2\"));",
+              "});",
+              "pm.test(\"Ordenada del mas reciente al mas antiguo\", function () {",
+              "    var t = pm.response.json().map(function (p) { return p.timestamp; });",
+              "    for (var i = 1; i < t.length; i++) { pm.expect(t[i - 1] >= t[i]).to.be.true; }",
+              "});"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{token_admin}}"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/pedidos",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "pedidos"
+          ]
+        }
+      }
+    },
+    {
+      "name": "17. CLIENTE A consulta el detalle de su pedido 1 - 200",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test(\"Status code is 200 OK\", function () {",
+              "    pm.response.to.have.status(200);",
+              "});",
+              "pm.test(\"Es el pedido pedido, con sus items y datos de entrega\", function () {",
+              "    var p = pm.response.json();",
+              "    pm.expect(p.id).to.eql(pm.collectionVariables.get(\"id_pedido\"));",
+              "    pm.expect(p.numero).to.match(/^OE-\\d{4,}$/);",
+              "    pm.expect(p.items.length).to.eql(1);",
+              "    pm.expect(p.entrega.direccion).to.eql(\"Av. Principal, Caracas\");",
+              "});",
+              "pm.collectionVariables.set(\"total_pedido\", pm.response.json().totalUsd);"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{token_cliente}}"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/pedidos/{{id_pedido}}",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "pedidos",
+            "{{id_pedido}}"
+          ]
+        }
+      }
+    },
+    {
+      "name": "18. CLIENTE B consulta el detalle del pedido de A (Debe rechazar 403)",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test(\"Status code is 403 Forbidden\", function () {",
+              "    pm.response.to.have.status(403);",
+              "});",
+              "pm.test(\"Responde {mensaje} con el motivo\", function () {",
+              "    pm.expect(pm.response.json().mensaje).to.include(\"No tienes permisos\");",
+              "});"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{token_cliente_b}}"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/pedidos/{{id_pedido}}",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "pedidos",
+            "{{id_pedido}}"
+          ]
+        }
+      }
+    },
+    {
+      "name": "19. ADMIN consulta el detalle de un pedido ajeno - 200",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test(\"Status code is 200 OK\", function () {",
+              "    pm.response.to.have.status(200);",
+              "});"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{token_admin}}"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/pedidos/{{id_pedido}}",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "pedidos",
+            "{{id_pedido}}"
+          ]
+        }
+      }
+    },
+    {
+      "name": "20. Consultar el detalle de un pedido que no existe - 404",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test(\"Status code is 404 Not Found\", function () {",
+              "    pm.response.to.have.status(404);",
+              "});",
+              "pm.test(\"Responde {mensaje} con el motivo\", function () {",
+              "    pm.expect(pm.response.json().mensaje).to.include(\"no existe\");",
+              "});"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{token_gestor}}"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/pedidos/00000000-0000-0000-0000-000000000000",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "pedidos",
+            "00000000-0000-0000-0000-000000000000"
+          ]
+        }
+      }
+    },
+    {
+      "name": "21. ADMIN intenta aprobar (Debe rechazar 403, el ADMIN solo consulta)",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test(\"Status code is 403 Forbidden\", function () {",
+              "    pm.response.to.have.status(403);",
+              "});"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ],
+      "request": {
+        "method": "PUT",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{token_admin}}"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/pedidos/{{id_pedido}}/aprobar",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "pedidos",
+            "{{id_pedido}}",
+            "aprobar"
+          ]
+        }
+      }
+    },
+    {
+      "name": "22. CLIENTE A intenta aprobar su pedido (Debe rechazar 403)",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test(\"Status code is 403 Forbidden\", function () {",
+              "    pm.response.to.have.status(403);",
+              "});"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ],
+      "request": {
+        "method": "PUT",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{token_cliente}}"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/pedidos/{{id_pedido}}/aprobar",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "pedidos",
+            "{{id_pedido}}",
+            "aprobar"
+          ]
+        }
+      }
+    },
+    {
+      "name": "23. GESTOR aprueba un pedido que no existe - 404",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test(\"Status code is 404 Not Found\", function () {",
+              "    pm.response.to.have.status(404);",
+              "});"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ],
+      "request": {
+        "method": "PUT",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{token_gestor}}"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/pedidos/00000000-0000-0000-0000-000000000000/aprobar",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "pedidos",
+            "00000000-0000-0000-0000-000000000000",
+            "aprobar"
+          ]
+        }
+      }
+    },
+    {
+      "name": "24. Stock antes de aprobar: registrar NO descuenta",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test(\"Status code is 200 OK\", function () {",
+              "    pm.response.to.have.status(200);",
+              "});",
+              "var m = pm.response.json().find(function (x) { return x.id === pm.collectionVariables.get(\"id_mueble\"); });",
+              "pm.test(\"Las unidades siguen iguales con dos pedidos PENDIENTES\", function () {",
+              "    pm.expect(m.unidades).to.eql(Number(pm.collectionVariables.get(\"stock_inicial\")));",
+              "});"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{token_gestor}}"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/muebles",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "muebles"
+          ]
+        }
+      }
+    },
+    {
+      "name": "25. GESTOR aprueba el pedido 1 - 200 APROBADO",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test(\"Status code is 200 OK\", function () {",
+              "    pm.response.to.have.status(200);",
+              "});",
+              "pm.test(\"Queda APROBADO con los montos congelados intactos\", function () {",
+              "    pm.expect(pm.response.json().estado).to.eql(\"APROBADO\");",
+              "    pm.expect(pm.response.json().totalUsd).to.eql(Number(pm.collectionVariables.get(\"total_pedido\")));",
+              "});"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ],
+      "request": {
+        "method": "PUT",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{token_gestor}}"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/pedidos/{{id_pedido}}/aprobar",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "pedidos",
+            "{{id_pedido}}",
+            "aprobar"
+          ]
+        }
+      }
+    },
+    {
+      "name": "26. Stock despues de aprobar: baja 1 unidad",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test(\"Status code is 200 OK\", function () {",
+              "    pm.response.to.have.status(200);",
+              "});",
+              "var m = pm.response.json().find(function (x) { return x.id === pm.collectionVariables.get(\"id_mueble\"); });",
+              "pm.test(\"Se desconto exactamente la cantidad del pedido 1\", function () {",
+              "    pm.expect(m.unidades).to.eql(Number(pm.collectionVariables.get(\"stock_tras_aprobar\")));",
+              "});"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{token_gestor}}"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/muebles",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "muebles"
+          ]
+        }
+      }
+    },
+    {
+      "name": "27. GESTOR aprueba el pedido 1 otra vez (doble clic) - 409",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test(\"Status code is 409 Conflict\", function () {",
+              "    pm.response.to.have.status(409);",
+              "});",
+              "pm.test(\"Responde {mensaje} con el motivo\", function () {",
+              "    pm.expect(pm.response.json().mensaje).to.include(\"PENDIENTE\");",
+              "});"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ],
+      "request": {
+        "method": "PUT",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{token_gestor}}"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/pedidos/{{id_pedido}}/aprobar",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "pedidos",
+            "{{id_pedido}}",
+            "aprobar"
+          ]
+        }
+      }
+    },
+    {
+      "name": "28. Stock tras el doble clic: no se desconto dos veces",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test(\"Status code is 200 OK\", function () {",
+              "    pm.response.to.have.status(200);",
+              "});",
+              "var m = pm.response.json().find(function (x) { return x.id === pm.collectionVariables.get(\"id_mueble\"); });",
+              "pm.test(\"Las unidades no cambiaron\", function () {",
+              "    pm.expect(m.unidades).to.eql(Number(pm.collectionVariables.get(\"stock_tras_aprobar\")));",
+              "});"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{token_gestor}}"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/muebles",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "muebles"
+          ]
+        }
+      }
+    },
+    {
+      "name": "29. GESTOR intenta rechazar el pedido 1 ya APROBADO - 409",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test(\"Status code is 409 Conflict\", function () {",
+              "    pm.response.to.have.status(409);",
+              "});",
+              "pm.test(\"Responde {mensaje} con el motivo\", function () {",
+              "    pm.expect(pm.response.json().mensaje).to.include(\"PENDIENTE\");",
+              "});"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ],
+      "request": {
+        "method": "PUT",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{token_gestor}}"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/pedidos/{{id_pedido}}/rechazar",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "pedidos",
+            "{{id_pedido}}",
+            "rechazar"
+          ]
+        }
+      }
+    },
+    {
+      "name": "30. ADMIN intenta rechazar (Debe rechazar 403)",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test(\"Status code is 403 Forbidden\", function () {",
+              "    pm.response.to.have.status(403);",
+              "});"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ],
+      "request": {
+        "method": "PUT",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{token_admin}}"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/pedidos/{{id_pedido_2}}/rechazar",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "pedidos",
+            "{{id_pedido_2}}",
+            "rechazar"
+          ]
+        }
+      }
+    },
+    {
+      "name": "31. GESTOR rechaza el pedido 2 - 200 RECHAZADO",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test(\"Status code is 200 OK\", function () {",
+              "    pm.response.to.have.status(200);",
+              "});",
+              "pm.test(\"Queda RECHAZADO\", function () {",
+              "    pm.expect(pm.response.json().estado).to.eql(\"RECHAZADO\");",
+              "});"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ],
+      "request": {
+        "method": "PUT",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{token_gestor}}"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/pedidos/{{id_pedido_2}}/rechazar",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "pedidos",
+            "{{id_pedido_2}}",
+            "rechazar"
+          ]
+        }
+      }
+    },
+    {
+      "name": "32. Stock despues de rechazar: no cambia",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test(\"Status code is 200 OK\", function () {",
+              "    pm.response.to.have.status(200);",
+              "});",
+              "var m = pm.response.json().find(function (x) { return x.id === pm.collectionVariables.get(\"id_mueble\"); });",
+              "pm.test(\"Rechazar no toca el stock\", function () {",
+              "    pm.expect(m.unidades).to.eql(Number(pm.collectionVariables.get(\"stock_tras_aprobar\")));",
+              "});"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{token_gestor}}"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/muebles",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "muebles"
+          ]
+        }
+      }
+    },
+    {
+      "name": "33. GESTOR intenta aprobar el pedido 2 ya RECHAZADO - 409",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test(\"Status code is 409 Conflict\", function () {",
+              "    pm.response.to.have.status(409);",
+              "});",
+              "pm.test(\"Responde {mensaje} con el motivo\", function () {",
+              "    pm.expect(pm.response.json().mensaje).to.include(\"PENDIENTE\");",
+              "});"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ],
+      "request": {
+        "method": "PUT",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{token_gestor}}"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/pedidos/{{id_pedido_2}}/aprobar",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "pedidos",
+            "{{id_pedido_2}}",
+            "aprobar"
+          ]
+        }
+      }
+    },
+    {
+      "name": "34. CLIENTE A ve los estados nuevos en su lista - 200",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test(\"Status code is 200 OK\", function () {",
+              "    pm.response.to.have.status(200);",
+              "});",
+              "var porId = {};",
+              "pm.response.json().forEach(function (p) { porId[p.id] = p.estado; });",
+              "pm.test(\"Pedido 1 APROBADO y pedido 2 RECHAZADO\", function () {",
+              "    pm.expect(porId[pm.collectionVariables.get(\"id_pedido\")]).to.eql(\"APROBADO\");",
+              "    pm.expect(porId[pm.collectionVariables.get(\"id_pedido_2\")]).to.eql(\"RECHAZADO\");",
+              "});"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{token_cliente}}"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/pedidos",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "pedidos"
+          ]
+        }
+      }
+    },
+    {
+      "name": "35. CLIENTE A anade TODO el stock del mueble escaso - 201",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test(\"Status code is 201 Created\", function () {",
+              "    pm.response.to.have.status(201);",
+              "});"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer {{token_cliente}}"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/carrito/items",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "carrito",
+            "items"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"idMueble\": \"{{id_mueble_escaso}}\",\n  \"cantidad\": {{stock_escaso}}\n}"
+        }
+      }
+    },
+    {
+      "name": "36. CLIENTE A registra el pedido 3 - 201",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test(\"Status code is 201 Created\", function () {",
+              "    pm.response.to.have.status(201);",
+              "});",
+              "pm.test(\"Nace PENDIENTE\", function () {",
+              "    pm.expect(pm.response.json().estado).to.eql(\"PENDIENTE\");",
+              "});",
+              "pm.collectionVariables.set(\"id_pedido_3\", pm.response.json().id);"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer {{token_cliente}}"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/pedidos",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "pedidos"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"nombre\": \"Cliente\",\n  \"apellido\": \"Consulta\",\n  \"telefono\": \"04121234567\",\n  \"direccion\": \"Av. Principal, Caracas\"\n}"
+        }
+      }
+    },
+    {
+      "name": "37. CLIENTE B anade TODO el stock del mismo mueble - 201 (aun no se descuenta)",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test(\"Status code is 201 Created\", function () {",
+              "    pm.response.to.have.status(201);",
+              "});"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer {{token_cliente_b}}"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/carrito/items",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "carrito",
+            "items"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"idMueble\": \"{{id_mueble_escaso}}\",\n  \"cantidad\": {{stock_escaso}}\n}"
+        }
+      }
+    },
+    {
+      "name": "38. CLIENTE B registra el pedido 4 - 201",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test(\"Status code is 201 Created\", function () {",
+              "    pm.response.to.have.status(201);",
+              "});",
+              "pm.test(\"Nace PENDIENTE\", function () {",
+              "    pm.expect(pm.response.json().estado).to.eql(\"PENDIENTE\");",
+              "});",
+              "pm.collectionVariables.set(\"id_pedido_4\", pm.response.json().id);"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer {{token_cliente_b}}"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/pedidos",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "pedidos"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"nombre\": \"Cliente\",\n  \"apellido\": \"Consulta\",\n  \"telefono\": \"04121234567\",\n  \"direccion\": \"Av. Principal, Caracas\"\n}"
+        }
+      }
+    },
+    {
+      "name": "39. GESTOR aprueba el pedido 3 - 200 (deja el mueble en 0)",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test(\"Status code is 200 OK\", function () {",
+              "    pm.response.to.have.status(200);",
+              "});"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ],
+      "request": {
+        "method": "PUT",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{token_gestor}}"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/pedidos/{{id_pedido_3}}/aprobar",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "pedidos",
+            "{{id_pedido_3}}",
+            "aprobar"
+          ]
+        }
+      }
+    },
+    {
+      "name": "40. GESTOR aprueba el pedido 4 - 409 Stock insuficiente",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test(\"Status code is 409 Conflict\", function () {",
+              "    pm.response.to.have.status(409);",
+              "});",
+              "pm.test(\"Mensaje exacto: Stock insuficiente\", function () {",
+              "    pm.expect(pm.response.json().mensaje).to.eql(\"Stock insuficiente\");",
+              "});"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ],
+      "request": {
+        "method": "PUT",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{token_gestor}}"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/pedidos/{{id_pedido_4}}/aprobar",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "pedidos",
+            "{{id_pedido_4}}",
+            "aprobar"
+          ]
+        }
+      }
+    },
+    {
+      "name": "41. CLIENTE B consulta el pedido 4 - sigue PENDIENTE",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test(\"Status code is 200 OK\", function () {",
+              "    pm.response.to.have.status(200);",
+              "});",
+              "pm.test(\"No se aprobo: sigue PENDIENTE\", function () {",
+              "    pm.expect(pm.response.json().estado).to.eql(\"PENDIENTE\");",
+              "});"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{token_cliente_b}}"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/pedidos/{{id_pedido_4}}",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "pedidos",
+            "{{id_pedido_4}}"
+          ]
+        }
+      }
+    },
+    {
+      "name": "42. GESTOR rechaza el pedido 4 - 200 (cierra la prueba)",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test(\"Status code is 200 OK\", function () {",
+              "    pm.response.to.have.status(200);",
+              "});"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ],
+      "request": {
+        "method": "PUT",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{token_gestor}}"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/pedidos/{{id_pedido_4}}/rechazar",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "pedidos",
+            "{{id_pedido_4}}",
+            "rechazar"
+          ]
+        }
+      }
+    }
+  ],
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:8080"
+    },
+    {
+      "key": "token_cliente",
+      "value": ""
+    },
+    {
+      "key": "token_cliente_b",
+      "value": ""
+    },
+    {
+      "key": "token_gestor",
+      "value": ""
+    },
+    {
+      "key": "token_admin",
+      "value": ""
+    },
+    {
+      "key": "correo_cliente",
+      "value": ""
+    },
+    {
+      "key": "correo_cliente_b",
+      "value": ""
+    },
+    {
+      "key": "id_mueble",
+      "value": ""
+    },
+    {
+      "key": "stock_inicial",
+      "value": ""
+    },
+    {
+      "key": "stock_tras_aprobar",
+      "value": ""
+    },
+    {
+      "key": "id_mueble_escaso",
+      "value": ""
+    },
+    {
+      "key": "stock_escaso",
+      "value": ""
+    },
+    {
+      "key": "id_pedido",
+      "value": ""
+    },
+    {
+      "key": "id_pedido_2",
+      "value": ""
+    },
+    {
+      "key": "id_pedido_3",
+      "value": ""
+    },
+    {
+      "key": "id_pedido_4",
+      "value": ""
+    },
+    {
+      "key": "total_pedido",
+      "value": ""
+    }
+  ]
+}

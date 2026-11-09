@@ -6,6 +6,7 @@ import org.springframework.stereotype.Repository;
 
 import java.util.List;
 import java.util.Locale;
+import java.util.Optional;
 import java.util.function.Function;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -29,8 +30,22 @@ public class MuebleRepositorio {
         return archivos.leerLista(ARCHIVO, Mueble.class);
     }
 
+    public Optional<Mueble> buscarPorId(String id) {
+        return listar().stream().filter(m -> id.equals(m.id())).findFirst();
+    }
+
     public void guardarTodos(List<Mueble> nuevos) {
         archivos.modificarLista(ARCHIVO, Mueble.class, lista -> lista.addAll(nuevos));
+    }
+
+    /**
+     * Leer - modificar - guardar muebles.json bajo un solo candado.
+     * Lo usa Aprobar Pedido para descontar el stock de todos los ítems a la vez.
+     * Si la operación lanza una excepción, el archivo NO cambia (todo o nada).
+     * Las reglas (validar y restar unidades) las pone quien llama, no este repositorio.
+     */
+    public <R> R modificar(Function<List<Mueble>, R> operacion) {
+        return archivos.modificarLista(ARCHIVO, Mueble.class, operacion);
     }
 
     /**
