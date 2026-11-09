@@ -18,7 +18,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-/** Lógica de la épica Gestionar Carrito. Por ahora: Añadir ítem al Carrito. */
+/** Lógica de la épica Gestionar Carrito: Añadir ítem, Consultar y Eliminar ítem. */
 @Service
 public class CarritoServicio {
 
@@ -100,6 +100,34 @@ public class CarritoServicio {
         Carrito carrito = carritoRepositorio.buscarPorUsuario(idUsuario)
                 .orElseGet(() -> new Carrito(idUsuario, List.of(), null));
         return aRespuesta(carrito);
+    }
+
+    // ------------------------------------------------------------------
+    // Eliminar ítem del Carrito
+    // ------------------------------------------------------------------
+
+    /**
+     * Historia: ELIMINAR ÍTEM DEL CARRITO (CLIENTE).
+     * Algoritmo:
+     *  1. Verifica que venga el id del mueble → si no, 400.
+     *  2. Pide al repositorio quitar ese mueble del carrito del cliente (el id sale del token),
+     *     bajo el candado de carritos.json.
+     *  3. Si el cliente no tiene carrito o ese mueble no está en él → 404 (también en el doble clic).
+     *     No se exige que el mueble siga en muebles.json: así se puede quitar uno que ya no existe.
+     *  4. Responde con el carrito actualizado y los totales recalculados con los precios actuales
+     *     y la tasa BCV. Si era el último ítem, el carrito queda vacío (items [], totales 0.00).
+     *     El stock no cambia (nunca se descontó al añadir).
+     *
+     * @param idUsuario id del cliente, tomado del token.
+     * @param idMueble  id (UUID) del mueble a quitar, tomado de la URL.
+     */
+    public CarritoRespuesta eliminarItem(String idUsuario, String idMueble) {
+        if (idMueble == null || idMueble.isBlank()) {
+            throw new ExcepcionNegocio(HttpStatus.BAD_REQUEST, "El mueble es obligatorio.");
+        }
+        Carrito actualizado = carritoRepositorio.eliminarItem(idUsuario, idMueble.trim())
+                .orElseThrow(() -> new ExcepcionNegocio(HttpStatus.NOT_FOUND, "Este mueble no está en tu carrito."));
+        return aRespuesta(actualizado);
     }
 
     // ------------------------------------------------------------------

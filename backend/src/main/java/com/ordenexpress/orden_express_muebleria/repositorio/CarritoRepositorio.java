@@ -79,6 +79,46 @@ public class CarritoRepositorio {
     }
 
     /**
+     * Quita del carrito del usuario el ítem de ese mueble. Lo usa "Eliminar ítem del Carrito".
+     *
+     * La búsqueda y el guardado ocurren bajo el mismo candado: si el cliente hace doble clic
+     * en "Eliminar", la primera petición quita el ítem y la segunda ya no lo encuentra.
+     * El carrito guardado queda limpio: sin ítems null y con items [] (nunca null) si se vacía.
+     *
+     * @return el carrito actualizado, o vacío si el usuario no tiene carrito o ese mueble no estaba
+     *         en él (en ese caso el archivo se reescribe con el mismo contenido).
+     */
+    public Optional<Carrito> eliminarItem(String idUsuario, String idMueble) {
+        return archivos.modificarLista(ARCHIVO, Carrito.class, lista -> {
+            int posicion = posicionDe(lista, idUsuario);
+            if (posicion < 0 || lista.get(posicion).items() == null) {
+                return Optional.<Carrito>empty();
+            }
+
+            // Copia limpia sin el mueble a eliminar ni ítems null (por si alguien editó el JSON a mano).
+            List<Carrito.ItemCarrito> restantes = new ArrayList<>();
+            boolean estaba = false;
+            for (Carrito.ItemCarrito item : lista.get(posicion).items()) {
+                if (item == null || item.idMueble() == null) {
+                    continue;
+                }
+                if (item.idMueble().equals(idMueble)) {
+                    estaba = true;
+                } else {
+                    restantes.add(item);
+                }
+            }
+            if (!estaba) {
+                return Optional.<Carrito>empty();
+            }
+
+            Carrito actualizado = new Carrito(idUsuario, restantes, Instant.now());
+            lista.set(posicion, actualizado);
+            return Optional.of(actualizado);
+        });
+    }
+
+    /**
      * Entrega los ítems del carrito del usuario a {@code procesar} y, SOLO si este termina sin error,
      * deja el carrito vacío (items [] y nunca null). Lo usa "Registrar Pedido".
      *

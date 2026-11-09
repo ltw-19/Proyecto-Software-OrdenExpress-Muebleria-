@@ -9,13 +9,15 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-/** Endpoints de Gestionar Carrito. Las demás historias de la épica se irán sumando aquí. */
+/** Endpoints de Gestionar Carrito: Añadir ítem, Consultar y Eliminar ítem. */
 @RestController
 @RequestMapping("/api/carrito")
 public class CarritoControlador {
@@ -45,5 +47,16 @@ public class CarritoControlador {
     public ResponseEntity<CarritoRespuesta> agregarItem(@AuthenticationPrincipal UsuarioAutenticado usuario,
                                                         @Valid @RequestBody AgregarItemCarritoSolicitud solicitud) {
         return ResponseEntity.status(HttpStatus.CREATED).body(carritoServicio.agregarItem(usuario.id(), solicitud));
+    }
+
+    /**
+     * DELETE /api/carrito/items/{idMueble} → 200 con el carrito actualizado y sus totales recalculados.
+     * Solo CLIENTE. 404 si ese mueble no está en su carrito. El carrito es SIEMPRE el del token.
+     */
+    @DeleteMapping("/items/{idMueble}")
+    @PreAuthorize("hasRole('CLIENTE')")
+    public CarritoRespuesta eliminarItem(@AuthenticationPrincipal UsuarioAutenticado usuario,
+                                         @PathVariable String idMueble) {
+        return carritoServicio.eliminarItem(usuario.id(), idMueble);
     }
 }
