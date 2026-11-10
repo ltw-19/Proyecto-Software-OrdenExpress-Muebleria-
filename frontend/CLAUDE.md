@@ -90,7 +90,18 @@ Una guarda de ruta redirige al ingreso si no hay sesión y bloquea según el rol
 - [x] **Catálogo de muebles:** Vista VistaCatalogo.vue y componente TarjetaMueble.vue (búsqueda con debounce, filtro de categorías, precios bimonetarios con Intl.NumberFormat, visibilidad de stock por rol y selector de cantidad para cliente).
 - [x] **Inventario / Registrar mueble:** Vista VistaInventario.vue (ADMIN y GESTOR, tabla de stock y tarjetas móviles, modal de registro de mueble con vista previa de foto, validación al 100%).
 
-## Pendiente (Historias del Sprint 1 restante)
-- [ ] Carrito (CLIENTE) - *Endpoints listos en backend (consultar, añadir, eliminar ítem, registrar pedido y Pre-orden)*.
-- [ ] Mis pedidos (CLIENTE) - *Endpoints listos en backend (consultar y eliminar)*.
-- [ ] Pedidos recibidos y detalle (ADMIN, GESTOR) - *Endpoints listos en backend (consultar, aprobar/rechazar y eliminar)*.
+## Progreso del Frontend (Sprint 1 Completado al 100%)
+- [x] **Esqueleto base:** Vite (puerto 5173), Vue Router con guardas por rol y autenticación, cliente Axios con interceptores JWT y gestión de sesión reactiva con localStorage.
+- [x] **Iniciar sesión:** Vista VistaIngreso.vue con validación y redirección.
+- [x] **Crear cuenta:** Vista VistaRegistro.vue con validación 100% en cliente, limpieza de teléfono y redirección tras 201.
+- [x] **Datos personales:** Vista VistaDatosPersonales.vue (ADMIN y CLIENTE, GESTOR bloqueado).
+- [x] **Gestión de roles:** Vista VistaGestionRoles.vue (ADMIN, sin poder cambiar el propio, versión de tabla y tarjetas para móvil).
+- [x] **Catálogo de muebles:** Vista VistaCatalogo.vue y componente TarjetaMueble.vue (búsqueda con debounce, filtro de categorías, precios bimonetarios con Intl.NumberFormat, visibilidad de stock por rol y selector de cantidad para cliente).
+- [x] **Inventario / Registrar mueble:** Vista VistaInventario.vue (ADMIN y GESTOR, tabla de stock y tarjetas móviles, modal de registro de mueble con vista previa de foto, validación al 100%).
+- [x] **Carrito de compras:** Vista VistaCarrito.vue (CLIENTE, cantidad solo lectura, eliminar ítem, formulario de entrega precargado y editable, confirmación de pedido).
+- [x] **Descarga de Pre-orden y WhatsApp:** Integrado en VistaCarrito.vue y VistaMisPedidos.vue (descarga PDF binario y botón verde oficial #25D366 para WhatsApp).
+- [x] **Mis pedidos:** Vista VistaMisPedidos.vue (CLIENTE, listado cronológico, detalle bimonetario, tasa congelada y eliminación condicionada a estado PENDIENTE).
+- [x] **Bandeja de pedidos recibidos:** Vista VistaPedidosRecibidos.vue (ADMIN y GESTOR, filtros por estado, búsqueda, detalle expandible; botones Aprobar/Rechazar/Eliminar exclusivos para GESTOR, ADMIN solo lectura).
+
+## Pendiente
+Ninguno. Todas las pantallas y flujos del Sprint 1 han sido implementados y probados satisfactoriamente.

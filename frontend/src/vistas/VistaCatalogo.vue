@@ -3,6 +3,7 @@ import { ref, onMounted, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import { sesion } from '../estado/sesion.js'
 import { muebleServicio, extraerMensajeError } from '../servicios/muebleServicio.js'
+import { carritoServicio } from '../servicios/carritoServicio.js'
 import TarjetaMueble from '../componentes/TarjetaMueble.vue'
 import AlertaMensaje from '../componentes/AlertaMensaje.vue'
 
@@ -74,10 +75,19 @@ function limpiarFiltros() {
   cargarMuebles()
 }
 
-function manejarAnadirCarrito({ mueble, cantidad }) {
-  // Conforme a CLAUDE-frontend.md, los endpoints de carrito aún no existen en el backend.
-  // Notificamos al usuario con mensaje informativo claro.
-  mensajeAviso.value = `Has seleccionado ${cantidad} unidad(es) de "${mueble.nombre}". El módulo de carrito y pedidos se integrará automáticamente cuando el backend habilite los endpoints correspondientes.`
+const mensajeExito = ref('')
+
+async function manejarAnadirCarrito({ mueble, cantidad }) {
+  mensajeError.value = ''
+  mensajeAviso.value = ''
+  mensajeExito.value = ''
+
+  try {
+    await carritoServicio.agregarItem(mueble.id, cantidad)
+    mensajeExito.value = `¡Se agregó "${mueble.nombre}" (${cantidad} unid.) a tu carrito con éxito!`
+  } catch (error) {
+    mensajeError.value = extraerMensajeError(error, 'No se pudo añadir el mueble al carrito.')
+  }
 }
 </script>
 
@@ -101,6 +111,13 @@ function manejarAnadirCarrito({ mueble, cantidad }) {
     </header>
 
     <!-- Alertas y Avisos del Sistema -->
+    <AlertaMensaje
+      v-if="mensajeExito"
+      tipo="exito"
+      :mensaje="mensajeExito"
+      @cerrar="mensajeExito = ''"
+    />
+
     <AlertaMensaje
       v-if="mensajeError"
       tipo="error"

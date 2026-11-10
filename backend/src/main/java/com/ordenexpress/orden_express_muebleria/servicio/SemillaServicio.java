@@ -14,9 +14,6 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
 
 import java.math.BigDecimal;
-import java.net.URLEncoder;
-import java.nio.charset.StandardCharsets;
-import java.text.Normalizer;
 import java.time.Instant;
 import java.util.List;
 import java.util.Locale;
@@ -28,7 +25,7 @@ import java.util.UUID;
  * datos/ no exista (porque está en el .gitignore):
  *  - Usuarios: si usuarios.json está vacío, crea el ADMIN y el Gestor de Ventas iniciales.
  *  - Muebles: si es un sistema nuevo (en este arranque se crearon los usuarios iniciales)
- *    y muebles.json está vacío, carga 6 muebles de ejemplo.
+ *    y muebles.json está vacío, carga 6 muebles de ejemplo con fotos reales de alta calidad.
  */
 @Component
 public class SemillaServicio implements ApplicationRunner {
@@ -83,9 +80,6 @@ public class SemillaServicio implements ApplicationRunner {
     }
 
     private void sembrarMuebles(boolean sistemaNuevo) {
-        // Solo en un sistema nuevo: así, si más adelante se eliminan todos los muebles, no reaparecen
-        // los de ejemplo al reiniciar. Tampoco depende de que muebles.json ya existiera vacío por un
-        // intento de arranque anterior que falló.
         if (!sistemaNuevo || !muebleRepositorio.listar().isEmpty()) {
             return;
         }
@@ -94,37 +88,42 @@ public class SemillaServicio implements ApplicationRunner {
                 mueble("M-001", "Sofá Alba", "Sala",
                         "Sofá de tres puestos tapizado en lino beige, con estructura y patas de madera de nogal. "
                                 + "Una pieza cómoda y atemporal para tu sala.",
-                        "210", "82", "90", "Lino beige y madera de nogal", "480.00", 8),
+                        "210", "82", "90", "Lino beige y madera de nogal",
+                        "https://images.unsplash.com/photo-1493663284031-b7e3aefcae8e?auto=format&fit=crop&w=800&q=80",
+                        "480.00", 8),
                 mueble("M-002", "Butaca Nido", "Sala",
                         "Butaca de brazos en madera de nogal con cojines de lino claro. Ideal para un rincón de lectura.",
-                        "78", "84", "80", "Madera de nogal y lino", "180.00", 12),
+                        "78", "84", "80", "Madera de nogal y lino",
+                        "https://images.unsplash.com/photo-1586023492125-27b2c045efd7?auto=format&fit=crop&w=800&q=80",
+                        "180.00", 12),
                 mueble("M-003", "Mesa de centro Olmo", "Sala",
                         "Mesa de centro baja de líneas suaves, con patas redondeadas y acabado cálido.",
-                        "110", "40", "60", "Madera de olmo", "220.00", 6),
+                        "110", "40", "60", "Madera de olmo",
+                        "https://images.unsplash.com/photo-1533090161767-e6ffed986c88?auto=format&fit=crop&w=800&q=80",
+                        "220.00", 6),
                 mueble("M-004", "Cama Serena", "Dormitorio",
                         "Cama con cabecero tapizado en lino y base de madera. Una pieza sobria para un dormitorio tranquilo.",
-                        "160", "100", "200", "Madera de nogal y lino", "650.00", 4),
+                        "160", "100", "200", "Madera de nogal y lino",
+                        "https://images.unsplash.com/photo-1505693416388-ac5ce068fe85?auto=format&fit=crop&w=800&q=80",
+                        "650.00", 4),
                 mueble("M-005", "Aparador Roble", "Comedor",
                         "Aparador de tres puertas en roble, con patas inclinadas y mucho espacio de guardado.",
-                        "160", "75", "42", "Madera de roble", "390.00", 5),
+                        "160", "75", "42", "Madera de roble",
+                        "https://images.unsplash.com/photo-1595428774223-ef52624120d2?auto=format&fit=crop&w=800&q=80",
+                        "390.00", 5),
                 mueble("M-006", "Mesa auxiliar Lía", "Sala",
                         "Mesa auxiliar redonda de base cilíndrica, perfecta junto al sofá o la cama.",
-                        "45", "52", "45", "Madera de nogal", "95.00", 10)));
-        registro.info("Sistema nuevo: se cargaron 6 muebles de ejemplo en muebles.json.");
+                        "45", "52", "45", "Madera de nogal",
+                        "https://images.unsplash.com/photo-1530018607912-eff2daa1bac4?auto=format&fit=crop&w=800&q=80",
+                        "95.00", 10)));
+        registro.info("Sistema nuevo: se cargaron 6 muebles de ejemplo con fotos reales en muebles.json.");
     }
 
     private Mueble mueble(String codigo, String nombre, String categoria, String descripcion,
                           String ancho, String alto, String profundidad,
-                          String material, String precioUsd, int unidades) {
-        // Foto de relleno con los colores de la marca. Reemplázalas por fotos reales cuando las tengan.
-        String texto = URLEncoder.encode(sinTildes(nombre), StandardCharsets.UTF_8);
-        String urlFoto = "https://placehold.co/600x400/8D6E63/FFFFFF/png?text=" + texto;
+                          String material, String urlFoto, String precioUsd, int unidades) {
         return new Mueble(UUID.randomUUID().toString(), codigo, nombre, categoria, descripcion,
                 new Mueble.Dimensiones(new BigDecimal(ancho), new BigDecimal(alto), new BigDecimal(profundidad)),
                 material, urlFoto, new BigDecimal(precioUsd), unidades);
-    }
-
-    private static String sinTildes(String texto) {
-        return Normalizer.normalize(texto, Normalizer.Form.NFD).replaceAll("\\p{M}", "");
     }
 }
