@@ -33,9 +33,14 @@ build/
 ### VS Code ###
 .vscode/
 
+### Configuración local de herramientas (MCP de Claude Code) ###
+/.mcp.json
+
 ### Frontend (dependencias de npm y compilado) ###
 frontend/node_modules/
 frontend/dist/
 
 ### Backend (datos de la aplicación en JSON) ###
 backend/datos/
+# Si el backend se ejecuta desde la raíz (por ejemplo con iniciar.bat), la carpeta se crea aquí.
+/datos/
