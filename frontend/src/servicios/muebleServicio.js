@@ -25,6 +25,17 @@ export const muebleServicio = {
   },
 
   /**
+   * Obtener el detalle completo de un mueble específico por su ID.
+   * GET /api/muebles/{id}
+   * @param {string} id
+   * @returns {Promise<{id: string, codigo: string, nombre: string, categoria: string, descripcion: string, dimensiones: {ancho: number, alto: number, profundidad: number}, material: string, urlFoto: string, precioUsd: number, precioBs: number, disponible: boolean, unidades?: number}>}
+   */
+  async obtenerPorId(id) {
+    const respuesta = await api.get(`/api/muebles/${id}`)
+    return respuesta.data
+  },
+
+  /**
    * Obtener la lista de nombres de categorías registradas en el sistema para el filtro.
    * GET /api/muebles/categorias
    * @returns {Promise<string[]>}

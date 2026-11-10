@@ -52,6 +52,7 @@ Una guarda de ruta redirige al ingreso si no hay sesión y bloquea según el rol
 | `POST /api/muebles` | ADMIN, GESTOR | `{nombre, categoria, descripcion, dimensiones:{ancho,alto,profundidad}, material, urlFoto, precioUsd, unidades}` → 201 mueble |
 | `GET /api/muebles?busqueda=&categoria=` | todos | lista (`id, codigo, nombre, categoria, descripcion, dimensiones, material, urlFoto, precioUsd, precioBs, disponible`; `unidades` solo ADMIN/GESTOR) |
 | `GET /api/muebles/categorias` | todos | lista de textos para el filtro |
+| `GET /api/muebles/{id}` | todos | detalle de un mueble (mismo objeto que `GET /api/muebles`; `unidades` solo ADMIN/GESTOR; 404 si no existe) |
 | `GET /api/carrito` | CLIENTE | → `{items:[{idMueble, codigo, nombre, urlFoto, precioUsd, precioBs, cantidad, subtotalUsd, subtotalBs, disponible}], cantidadItems, totalUsd, totalBs}` (vacío: `items: []`, totales `0.00`) |
 | `POST /api/carrito/items` | CLIENTE | `{idMueble, cantidad}` → 201 carrito (mismo formato). 409 "Stock insuficiente" o mueble ya en el carrito; 404 mueble inexistente |
 | `DELETE /api/carrito/items/{idMueble}` | CLIENTE | sin cuerpo → 200 carrito (mismo formato, totales ya recalculados; si era el último ítem, `items: []` y totales `0.00`). 404 "Este mueble no está en tu carrito." (también el doble clic). No toca el stock |
@@ -88,6 +89,7 @@ Una guarda de ruta redirige al ingreso si no hay sesión y bloquea según el rol
 - [x] **Datos personales:** Vista VistaDatosPersonales.vue (ADMIN y CLIENTE, GESTOR bloqueado).
 - [x] **Gestión de roles:** Vista VistaGestionRoles.vue (ADMIN, sin poder cambiar el propio, versión de tabla y tarjetas para móvil).
 - [x] **Catálogo de muebles:** Vista VistaCatalogo.vue y componente TarjetaMueble.vue (búsqueda con debounce, filtro de categorías, precios bimonetarios con Intl.NumberFormat, visibilidad de stock por rol y selector de cantidad para cliente).
+- [x] **Consultar mueble (detalle completo):** Vista dedicada VistaDetalleMueble.vue (`/muebles/:id`) con ficha ampliada, miga de pan, validación de cantidad y compra directa para CLIENTE consumiendo `GET /api/muebles/{id}`.
 - [x] **Inventario / Registrar mueble:** Vista VistaInventario.vue (ADMIN y GESTOR, tabla de stock y tarjetas móviles, modal de registro de mueble con vista previa de foto, validación al 100%).
 
 ## Progreso del Frontend (Sprint 1 Completado al 100%)
@@ -97,6 +99,7 @@ Una guarda de ruta redirige al ingreso si no hay sesión y bloquea según el rol
 - [x] **Datos personales:** Vista VistaDatosPersonales.vue (ADMIN y CLIENTE, GESTOR bloqueado).
 - [x] **Gestión de roles:** Vista VistaGestionRoles.vue (ADMIN, sin poder cambiar el propio, versión de tabla y tarjetas para móvil).
 - [x] **Catálogo de muebles:** Vista VistaCatalogo.vue y componente TarjetaMueble.vue (búsqueda con debounce, filtro de categorías, precios bimonetarios con Intl.NumberFormat, visibilidad de stock por rol y selector de cantidad para cliente).
+- [x] **Consultar mueble (detalle completo):** Vista dedicada VistaDetalleMueble.vue (`/muebles/:id`) con ficha ampliada, miga de pan, validación de cantidad y compra directa para CLIENTE consumiendo `GET /api/muebles/{id}`.
 - [x] **Inventario / Registrar mueble:** Vista VistaInventario.vue (ADMIN y GESTOR, tabla de stock y tarjetas móviles, modal de registro de mueble con vista previa de foto, validación al 100%).
 - [x] **Carrito de compras:** Vista VistaCarrito.vue (CLIENTE, cantidad solo lectura, eliminar ítem, formulario de entrega precargado y editable, confirmación de pedido).
 - [x] **Descarga de Pre-orden y WhatsApp:** Integrado en VistaCarrito.vue y VistaMisPedidos.vue (descarga PDF binario y botón verde oficial #25D366 para WhatsApp).

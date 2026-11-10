@@ -78,6 +78,37 @@ GET /api/muebles?busqueda=sofa&categoria=Sala
 
 ---
 
+## 5b. Historia: Consultar Mueble (Página Dedicada de Detalle)
+
+### Interfaz Humano-Máquina (IHM)
+- **Componentes Vue involucrados:**
+  - `TarjetaMueble.vue`: Enlaces `<router-link :to="/muebles/${mueble.id}">` sobre la imagen del producto, el título y el enlace `"Ver descripción y foto completa →"`.
+  - `VistaDetalleMueble.vue`: Página dedicada que presenta:
+    - Barra superior con botón `"← Volver al Catálogo"` y miga de pan (`Catálogo / Categoría / Nombre`).
+    - Imagen en gran formato con insignia de código y reemplazo SVG si falla la carga.
+    - Descripción completa sin recorte de líneas, material y dimensiones (`Ancho × Profundidad × Alto cm`).
+    - Bloque de precios bimonetarios en USD y Bolívares (tasa BCV oficial) formateados con `Intl.NumberFormat('es-VE')`.
+    - **CLIENTE:** Selector de cantidad validado (entero >= 1), botón `"Añadir al carrito"` y acceso rápido `"🛒 Ir a mi Carrito"` tras añadir. Nunca visualiza el número exacto de stock (solo `"Disponible para entrega"` o `"Temporalmente agotado"`).
+    - **ADMIN / GESTOR:** Visualizan las unidades exactas disponibles en inventario y un acceso directo `"📦 Ir al Inventario"`, en modo de solo consulta.
+  - `AlertaMensaje.vue`: Notificaciones de éxito al añadir al carrito o errores HTTP (ej. 409 stock insuficiente o mueble no encontrado).
+- **Ruta frontend:** `/muebles/:id` (requiere autenticación; accesible para `CLIENTE`, `ADMIN` y `GESTOR`).
+
+### Arquitectura
+- **Capa y servicios:** `VistaDetalleMueble.vue` → `muebleServicio.obtenerPorId(id)` y `carritoServicio.agregarItem(idMueble, cantidad)` → `api.js` (Axios con token JWT).
+- **Endpoints consumidos:**
+  - `GET /api/muebles/{id}` (consulta directa del detalle del mueble por su ID; `404` si no existe).
+  - `POST /api/carrito/items` (cuando un `CLIENTE` añade unidades desde la ficha).
+
+### Algoritmo
+1. El usuario hace clic en la foto, título o enlace de detalle en cualquier tarjeta de `VistaCatalogo.vue`.
+2. Vue Router navega a `/muebles/:id`, activa la guarda de autenticación y desplaza el scroll al inicio de la página.
+3. Al montarse `VistaDetalleMueble.vue` (o cambiar el parámetro `id` de la ruta), invoca `muebleServicio.obtenerPorId(route.params.id)`, que consulta directamente `GET /api/muebles/{id}`.
+4. Si el servidor responde `404 Not Found` o falla la petición, muestra la alerta con `respuesta.data.mensaje` y el estado de `"Mueble no encontrado"` con botón de regreso al catálogo.
+5. Si se encuentra, renderiza la ficha completa adaptando disponibilidad y controles según el rol en `sesion`.
+6. Si un `CLIENTE` presiona `"Añadir al carrito"`, se valida que la cantidad sea un entero positivo dentro del rango permitido antes de enviar `POST /api/carrito/items`, actualizando el contador reactivo de `BarraNavegacion.vue`.
+
+---
+
 ## 6. Historia: Registrar Mueble e Inventario
 
 ### Interfaz Humano-Máquina (IHM)

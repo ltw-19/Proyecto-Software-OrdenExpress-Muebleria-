@@ -14,6 +14,8 @@ import VistaNoAutorizado from '../vistas/VistaNoAutorizado.vue'
 import VistaCarrito from '../vistas/VistaCarrito.vue'
 import VistaMisPedidos from '../vistas/VistaMisPedidos.vue'
 import VistaPedidosRecibidos from '../vistas/VistaPedidosRecibidos.vue'
+import VistaDetallePedido from '../vistas/VistaDetallePedido.vue'
+import VistaDetalleMueble from '../vistas/VistaDetalleMueble.vue'
 
 const routes = [
   {
@@ -38,6 +40,12 @@ const routes = [
     path: '/catalogo',
     name: 'Catalogo',
     component: VistaCatalogo,
+    meta: { requiereAutenticacion: true }
+  },
+  {
+    path: '/muebles/:id',
+    name: 'DetalleMueble',
+    component: VistaDetalleMueble,
     meta: { requiereAutenticacion: true }
   },
   {
@@ -77,6 +85,15 @@ const routes = [
     }
   },
   {
+    path: '/pedidos/:id',
+    name: 'DetallePedido',
+    component: VistaDetallePedido,
+    meta: {
+      requiereAutenticacion: true,
+      roles: ['ADMIN', 'GESTOR']
+    }
+  },
+  {
     path: '/perfil',
     name: 'DatosPersonales',
     component: VistaDatosPersonales,
@@ -107,7 +124,10 @@ const routes = [
 
 const router = createRouter({
   history: createWebHistory(),
-  routes
+  routes,
+  scrollBehavior() {
+    return { top: 0 }
+  }
 })
 
 // Guarda global de navegación por roles y autenticación

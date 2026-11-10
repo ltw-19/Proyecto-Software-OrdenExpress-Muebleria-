@@ -1,13 +1,10 @@
 <script setup>
 import { ref, onMounted, watch } from 'vue'
-import { useRouter } from 'vue-router'
 import { sesion } from '../estado/sesion.js'
 import { muebleServicio, extraerMensajeError } from '../servicios/muebleServicio.js'
 import { carritoServicio } from '../servicios/carritoServicio.js'
 import TarjetaMueble from '../componentes/TarjetaMueble.vue'
 import AlertaMensaje from '../componentes/AlertaMensaje.vue'
-
-const router = useRouter()
 
 const muebles = ref([])
 const categorias = ref([])
@@ -234,6 +231,8 @@ async function manejarAnadirCarrito({ mueble, cantidad }) {
         @anadir-al-carrito="manejarAnadirCarrito"
       />
     </main>
+
+
   </div>
 </template>
 
@@ -446,4 +445,5 @@ async function manejarAnadirCarrito({ mueble, cantidad }) {
     gap: 1.1rem;
   }
 }
+
 </style>

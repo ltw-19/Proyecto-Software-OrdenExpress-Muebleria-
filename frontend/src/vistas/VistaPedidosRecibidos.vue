@@ -34,12 +34,10 @@ async function cargarPedidos() {
 // Filtrado combinado por estado y búsqueda
 const pedidosFiltrados = computed(() => {
   return pedidos.value.filter((p) => {
-    // Filtro por pestaña de estado
     if (filtroEstado.value !== 'TODOS' && p.estado !== filtroEstado.value) {
       return false
     }
 
-    // Filtro por término de búsqueda (número, nombre, teléfono)
     if (terminoBusqueda.value.trim()) {
       const q = terminoBusqueda.value.toLowerCase().trim()
       const num = (p.numero || '').toLowerCase()
@@ -230,8 +228,9 @@ function formatearFecha(isoString) {
       <p>No hay pedidos que coincidan con los filtros aplicados.</p>
     </div>
 
-    <!-- Tabla para Escritorio -->
+    <!-- Contenedor Principal (Tabla Desktop + Tarjetas Móvil) -->
     <div v-else class="tarjeta contenedor-tabla-bandeja">
+      <!-- Versión Escritorio: Tabla -->
       <table class="tabla-bandeja">
         <thead>
           <tr>
@@ -252,14 +251,19 @@ function formatearFecha(isoString) {
               :class="{ 'fila-expandida': pedidoExpandidoId === pedido.id }"
             >
               <td>
-                <button
-                  type="button"
-                  class="btn-enlace-numero"
-                  @click="alternarDetalle(pedido.id)"
-                >
-                  {{ pedidoExpandidoId === pedido.id ? '▼' : '►' }}
-                  <strong>{{ pedido.numero }}</strong>
-                </button>
+                <div class="celda-numero">
+                  <button
+                    type="button"
+                    class="btn-flecha"
+                    :title="pedidoExpandidoId === pedido.id ? 'Contraer vista rápida' : 'Expandir vista rápida'"
+                    @click="alternarDetalle(pedido.id)"
+                  >
+                    {{ pedidoExpandidoId === pedido.id ? '▼' : '►' }}
+                  </button>
+                  <router-link :to="`/pedidos/${pedido.id}`" class="enlace-numero-pedido">
+                    <strong>{{ pedido.numero }}</strong>
+                  </router-link>
+                </div>
               </td>
               <td>{{ formatearFecha(pedido.timestamp) }}</td>
               <td>
@@ -279,56 +283,54 @@ function formatearFecha(isoString) {
                 </span>
               </td>
               <td>
-                <!-- ACCIONES SEGÚN ROL -->
-                <!-- GESTOR: Puede Aprobar y Rechazar si está PENDIENTE, y Eliminar -->
-                <div v-if="sesion.esGestor.value" class="grupo-botones-accion">
-                  <button
-                    v-if="pedido.estado === 'PENDIENTE'"
-                    type="button"
-                    class="btn-accion btn-accion-aprobar"
-                    :disabled="procesandoId === pedido.id"
-                    title="Aprobar pedido y descontar stock"
-                    @click="aprobarPedido(pedido)"
+                <div class="grupo-botones-accion">
+                  <router-link
+                    :to="`/pedidos/${pedido.id}`"
+                    class="btn-accion btn-accion-detalle"
+                    title="Abrir pantalla completa de detalle del pedido"
                   >
-                    ✓ Aprobar
-                  </button>
+                    👁️ Detalle
+                  </router-link>
 
-                  <button
-                    v-if="pedido.estado === 'PENDIENTE'"
-                    type="button"
-                    class="btn-accion btn-accion-rechazar"
-                    :disabled="procesandoId === pedido.id"
-                    title="Rechazar pedido"
-                    @click="rechazarPedido(pedido)"
-                  >
-                    ✗ Rechazar
-                  </button>
+                  <!-- GESTOR: Puede Aprobar y Rechazar si está PENDIENTE, y Eliminar -->
+                  <template v-if="sesion.esGestor.value">
+                    <button
+                      v-if="pedido.estado === 'PENDIENTE'"
+                      type="button"
+                      class="btn-accion btn-accion-aprobar"
+                      :disabled="procesandoId === pedido.id"
+                      title="Aprobar pedido y descontar stock"
+                      @click="aprobarPedido(pedido)"
+                    >
+                      ✓ Aprobar
+                    </button>
 
-                  <button
-                    type="button"
-                    class="btn-accion btn-accion-eliminar"
-                    :disabled="procesandoId === pedido.id"
-                    title="Eliminar pedido"
-                    @click="eliminarPedido(pedido)"
-                  >
-                    🗑️
-                  </button>
-                </div>
+                    <button
+                      v-if="pedido.estado === 'PENDIENTE'"
+                      type="button"
+                      class="btn-accion btn-accion-rechazar"
+                      :disabled="procesandoId === pedido.id"
+                      title="Rechazar pedido"
+                      @click="rechazarPedido(pedido)"
+                    >
+                      ✗ Rechazar
+                    </button>
 
-                <!-- ADMIN: Solo lectura (no tiene botones de modificación ni eliminación) -->
-                <div v-else class="texto-solo-lectura">
-                  <button
-                    type="button"
-                    class="btn btn-outline btn-xs"
-                    @click="alternarDetalle(pedido.id)"
-                  >
-                    {{ pedidoExpandidoId === pedido.id ? 'Ocultar' : 'Ver Detalle' }}
-                  </button>
+                    <button
+                      type="button"
+                      class="btn-accion btn-accion-eliminar"
+                      :disabled="procesandoId === pedido.id"
+                      title="Eliminar pedido"
+                      @click="eliminarPedido(pedido)"
+                    >
+                      🗑️
+                    </button>
+                  </template>
                 </div>
               </td>
             </tr>
 
-            <!-- Fila desplegable con el detalle completo del pedido -->
+            <!-- Fila desplegable rápida -->
             <tr v-if="pedidoExpandidoId === pedido.id" class="fila-detalle-expandida">
               <td colspan="8">
                 <div class="panel-detalle-pedido">
@@ -363,6 +365,79 @@ function formatearFecha(isoString) {
           </template>
         </tbody>
       </table>
+
+      <!-- Versión Móvil: Lista de Tarjetas Responsive -->
+      <div class="lista-tarjetas-movil">
+        <article
+          v-for="pedido in pedidosFiltrados"
+          :key="pedido.id"
+          class="tarjeta-pedido-movil"
+        >
+          <div class="cabecera-movil">
+            <div>
+              <router-link :to="`/pedidos/${pedido.id}`" class="enlace-numero-pedido">
+                <h3>{{ pedido.numero }}</h3>
+              </router-link>
+              <span class="fecha-movil">{{ formatearFecha(pedido.timestamp) }}</span>
+            </div>
+            <span
+              :class="[
+                'insignia-estado',
+                `estado-${pedido.estado?.toLowerCase()}`
+              ]"
+            >
+              {{ pedido.estado }}
+            </span>
+          </div>
+
+          <div class="cuerpo-movil">
+            <p><strong>Cliente:</strong> {{ pedido.entrega?.nombre }} {{ pedido.entrega?.apellido }}</p>
+            <p><strong>Teléfono:</strong> {{ pedido.entrega?.telefono }}</p>
+            <div class="totales-movil">
+              <strong class="total-usd-movil">$ {{ formatoMoneda(pedido.totalUsd) }} USD</strong>
+              <span class="total-bs-movil">Bs. {{ formatoMoneda(pedido.totalBs) }}</span>
+            </div>
+          </div>
+
+          <div class="pie-movil">
+            <router-link
+              :to="`/pedidos/${pedido.id}`"
+              class="btn btn-outline btn-xs"
+            >
+              👁️ Ver Detalle
+            </router-link>
+
+            <div v-if="sesion.esGestor.value" class="acciones-movil-gestor">
+              <button
+                v-if="pedido.estado === 'PENDIENTE'"
+                type="button"
+                class="btn-accion btn-accion-aprobar"
+                :disabled="procesandoId === pedido.id"
+                @click="aprobarPedido(pedido)"
+              >
+                ✓ Aprobar
+              </button>
+              <button
+                v-if="pedido.estado === 'PENDIENTE'"
+                type="button"
+                class="btn-accion btn-accion-rechazar"
+                :disabled="procesandoId === pedido.id"
+                @click="rechazarPedido(pedido)"
+              >
+                ✗ Rechazar
+              </button>
+              <button
+                type="button"
+                class="btn-accion btn-accion-eliminar"
+                :disabled="procesandoId === pedido.id"
+                @click="eliminarPedido(pedido)"
+              >
+                🗑️
+              </button>
+            </div>
+          </div>
+        </article>
+      </div>
     </div>
   </div>
 </template>
@@ -441,7 +516,7 @@ function formatearFecha(isoString) {
 
 .contenedor-tabla-bandeja {
   padding: 0;
-  overflow-x: auto;
+  overflow: hidden;
 }
 
 .tabla-bandeja {
@@ -465,18 +540,27 @@ function formatearFecha(isoString) {
   vertical-align: middle;
 }
 
-.btn-enlace-numero {
-  background: transparent;
-  border: none;
-  color: var(--color-nogal-primario);
-  cursor: pointer;
-  font-size: 0.95rem;
-  display: inline-flex;
+.celda-numero {
+  display: flex;
   align-items: center;
   gap: 0.4rem;
 }
 
-.btn-enlace-numero:hover {
+.btn-flecha {
+  background: transparent;
+  border: none;
+  color: var(--color-nogal-secundario);
+  cursor: pointer;
+  font-size: 0.8rem;
+  padding: 0.2rem;
+}
+
+.enlace-numero-pedido {
+  color: var(--color-nogal-primario);
+  text-decoration: none;
+}
+
+.enlace-numero-pedido:hover {
   text-decoration: underline;
 }
 
@@ -511,6 +595,7 @@ function formatearFecha(isoString) {
   display: flex;
   gap: 0.4rem;
   align-items: center;
+  flex-wrap: wrap;
 }
 
 .btn-accion {
@@ -521,6 +606,19 @@ function formatearFecha(isoString) {
   font-weight: 600;
   cursor: pointer;
   transition: opacity 0.2s ease;
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+}
+
+.btn-accion-detalle {
+  background-color: var(--color-nogal-fondo);
+  color: var(--color-nogal-primario);
+  border: 1px solid var(--color-nogal-claro);
+}
+
+.btn-accion-detalle:hover {
+  background-color: var(--color-nogal-claro);
 }
 
 .btn-accion-aprobar {
@@ -554,7 +652,7 @@ function formatearFecha(isoString) {
 }
 
 .btn-xs {
-  padding: 0.25rem 0.5rem;
+  padding: 0.3rem 0.65rem;
   font-size: 0.8rem;
 }
 
@@ -608,6 +706,82 @@ function formatearFecha(isoString) {
   color: var(--color-texto-mutado);
 }
 
+/* Versión móvil en tarjetas */
+.lista-tarjetas-movil {
+  display: none;
+  padding: 1rem;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.tarjeta-pedido-movil {
+  border: 1px solid var(--color-borde);
+  border-radius: var(--radio-control);
+  padding: 1rem;
+  background-color: var(--color-superficie);
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.cabecera-movil {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  border-bottom: 1px solid var(--color-borde);
+  padding-bottom: 0.6rem;
+}
+
+.cabecera-movil h3 {
+  margin-bottom: 0.1rem;
+  font-size: 1.1rem;
+}
+
+.fecha-movil {
+  font-size: 0.78rem;
+  color: var(--color-texto-mutado);
+}
+
+.cuerpo-movil p {
+  margin-bottom: 0.25rem;
+  font-size: 0.875rem;
+}
+
+.totales-movil {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  background-color: var(--color-nogal-fondo);
+  padding: 0.5rem 0.75rem;
+  border-radius: 6px;
+  margin-top: 0.4rem;
+}
+
+.total-usd-movil {
+  color: var(--color-nogal-primario);
+  font-size: 1rem;
+}
+
+.total-bs-movil {
+  font-size: 0.85rem;
+  color: var(--color-texto-principal);
+}
+
+.pie-movil {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  padding-top: 0.5rem;
+  border-top: 1px solid var(--color-borde);
+}
+
+.acciones-movil-gestor {
+  display: flex;
+  gap: 0.4rem;
+}
+
 @media (max-width: 860px) {
   .barra-controles {
     flex-direction: column;
@@ -618,9 +792,12 @@ function formatearFecha(isoString) {
     max-width: 100%;
   }
 
-  .panel-detalle-pedido {
-    grid-template-columns: 1fr;
-    gap: 1rem;
+  .tabla-bandeja {
+    display: none;
+  }
+
+  .lista-tarjetas-movil {
+    display: flex;
   }
 }
 </style>
