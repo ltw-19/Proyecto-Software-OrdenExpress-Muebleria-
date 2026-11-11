@@ -8,6 +8,9 @@ import VistaDatosPersonales from '../vistas/VistaDatosPersonales.vue'
 import VistaGestionRoles from '../vistas/VistaGestionRoles.vue'
 import VistaCatalogo from '../vistas/VistaCatalogo.vue'
 import VistaInventario from '../vistas/VistaInventario.vue'
+import VistaCarrito from '../vistas/VistaCarrito.vue'
+import VistaMisPedidos from '../vistas/VistaMisPedidos.vue'
+import VistaPedidosRecibidos from '../vistas/VistaPedidosRecibidos.vue'
 import VistaNoAutorizado from '../vistas/VistaNoAutorizado.vue'
 
 const routes = [
@@ -34,6 +37,33 @@ const routes = [
     name: 'Catalogo',
     component: VistaCatalogo,
     meta: { requiereAutenticacion: true }
+  },
+  {
+    path: '/carrito',
+    name: 'Carrito',
+    component: VistaCarrito,
+    meta: {
+      requiereAutenticacion: true,
+      roles: ['CLIENTE']
+    }
+  },
+  {
+    path: '/mis-pedidos',
+    name: 'MisPedidos',
+    component: VistaMisPedidos,
+    meta: {
+      requiereAutenticacion: true,
+      roles: ['CLIENTE']
+    }
+  },
+  {
+    path: '/pedidos',
+    name: 'PedidosRecibidos',
+    component: VistaPedidosRecibidos,
+    meta: {
+      requiereAutenticacion: true,
+      roles: ['ADMIN', 'GESTOR']
+    }
   },
   {
     path: '/inventario',

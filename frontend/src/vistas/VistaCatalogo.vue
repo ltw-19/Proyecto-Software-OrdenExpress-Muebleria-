@@ -2,7 +2,9 @@
 import { ref, onMounted, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import { sesion } from '../estado/sesion.js'
+import { carritoEstado } from '../estado/carritoEstado.js'
 import { muebleServicio, extraerMensajeError } from '../servicios/muebleServicio.js'
+import { carritoServicio } from '../servicios/carritoServicio.js'
 import TarjetaMueble from '../componentes/TarjetaMueble.vue'
 import AlertaMensaje from '../componentes/AlertaMensaje.vue'
 
@@ -13,7 +15,9 @@ const categorias = ref([])
 const busqueda = ref('')
 const categoriaSeleccionada = ref('TODAS')
 const cargando = ref(false)
+const agregando = ref(false)
 const mensajeError = ref('')
+const mensajeExito = ref('')
 const mensajeAviso = ref('')
 let temporizadorBusqueda = null
 
@@ -22,6 +26,9 @@ onMounted(async () => {
     cargarCategorias(),
     cargarMuebles()
   ])
+  if (sesion.esCliente.value) {
+    carritoEstado.cargarCarrito()
+  }
 })
 
 // Búsqueda con debounce para mejorar la experiencia de usuario
@@ -74,10 +81,29 @@ function limpiarFiltros() {
   cargarMuebles()
 }
 
-function manejarAnadirCarrito({ mueble, cantidad }) {
-  // Conforme a CLAUDE-frontend.md, los endpoints de carrito aún no existen en el backend.
-  // Notificamos al usuario con mensaje informativo claro.
-  mensajeAviso.value = `Has seleccionado ${cantidad} unidad(es) de "${mueble.nombre}". El módulo de carrito y pedidos se integrará automáticamente cuando el backend habilite los endpoints correspondientes.`
+async function manejarAnadirCarrito({ mueble, cantidad }) {
+  if (!sesion.esCliente.value) {
+    mensajeAviso.value = 'Solo las cuentas con rol CLIENTE pueden añadir productos al carrito.'
+    return
+  }
+
+  mensajeError.value = ''
+  mensajeExito.value = ''
+  mensajeAviso.value = ''
+  agregando.value = true
+
+  try {
+    const carritoActualizado = await carritoServicio.agregarItem(mueble.id, cantidad)
+    carritoEstado.sincronizarConRespuesta(carritoActualizado)
+    mensajeExito.value = `¡Se añadieron ${cantidad} unidad(es) de "${mueble.nombre}" a tu carrito!`
+  } catch (error) {
+    mensajeError.value = extraerMensajeError(
+      error,
+      'No se pudo añadir el mueble al carrito. Por favor intenta nuevamente.'
+    )
+  } finally {
+    agregando.value = false
+  }
 }
 </script>
 
@@ -106,6 +132,13 @@ function manejarAnadirCarrito({ mueble, cantidad }) {
       tipo="error"
       :mensaje="mensajeError"
       @cerrar="mensajeError = ''"
+    />
+
+    <AlertaMensaje
+      v-if="mensajeExito"
+      tipo="exito"
+      :mensaje="mensajeExito"
+      @cerrar="mensajeExito = ''"
     />
 
     <AlertaMensaje

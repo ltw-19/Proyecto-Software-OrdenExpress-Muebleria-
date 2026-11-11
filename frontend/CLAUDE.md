@@ -89,8 +89,8 @@ Una guarda de ruta redirige al ingreso si no hay sesión y bloquea según el rol
 - [x] **Gestión de roles:** Vista VistaGestionRoles.vue (ADMIN, sin poder cambiar el propio, versión de tabla y tarjetas para móvil).
 - [x] **Catálogo de muebles:** Vista VistaCatalogo.vue y componente TarjetaMueble.vue (búsqueda con debounce, filtro de categorías, precios bimonetarios con Intl.NumberFormat, visibilidad de stock por rol y selector de cantidad para cliente).
 - [x] **Inventario / Registrar mueble:** Vista VistaInventario.vue (ADMIN y GESTOR, tabla de stock y tarjetas móviles, modal de registro de mueble con vista previa de foto, validación al 100%).
+- [x] **Carrito (CLIENTE):** Vista VistaCarrito.vue, servicio carritoServicio.js, estado reactivo del carrito en navbar, tabla para escritorio y tarjetas para móvil, validación al 100% de datos de entrega, registro de pedido, descarga directa de Pre-orden PDF y botón exclusivo WhatsApp (#25D366).
+- [x] **Mis pedidos (CLIENTE):** Vista VistaMisPedidos.vue, servicio pedidoServicio.js, listado ordenado por fecha, insignias de estado por color (PENDIENTE amarillo, APROBADO verde, RECHAZADO rojo), detalle expandible de ítems y tasa congelada, re-descarga de PDF y eliminación solo en estado PENDIENTE.
 
-## Pendiente (Historias del Sprint 1 restante)
-- [ ] Carrito (CLIENTE) - *Endpoints listos en backend (consultar, añadir, eliminar ítem, registrar pedido y Pre-orden)*.
-- [ ] Mis pedidos (CLIENTE) - *Endpoints listos en backend (consultar y eliminar)*.
-- [ ] Pedidos recibidos y detalle (ADMIN, GESTOR) - *Endpoints listos en backend (consultar, aprobar/rechazar y eliminar)*.
+## Pendiente (30% Restante - Asignado a compañero de equipo)
+- [ ] **Pedidos recibidos y detalle (ADMIN, GESTOR):** Vista completa VistaPedidosRecibidos.vue (bandeja global con filtros de estado y buscador, modal de detalle del pedido, acciones de Aprobar/Rechazar para el GESTOR solo en pedidos PENDIENTES, eliminar pedido para el GESTOR, y modo de SOLO LECTURA estricto para el ADMIN sin botones de acción).
