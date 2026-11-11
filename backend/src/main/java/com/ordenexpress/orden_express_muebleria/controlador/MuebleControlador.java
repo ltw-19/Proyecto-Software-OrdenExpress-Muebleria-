@@ -11,6 +11,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -54,5 +55,18 @@ public class MuebleControlador {
     @GetMapping("/categorias")
     public List<String> categorias() {
         return muebleServicio.listarCategorias();
+    }
+
+    /**
+     * GET /api/muebles/{id} → 200 con el detalle completo de un mueble. Cualquier usuario con sesión.
+     * ADMIN y GESTOR reciben además la cifra de unidades; el CLIENTE solo recibe "disponible".
+     * Si no existe → 404.
+     */
+    @GetMapping("/{id}")
+    @PreAuthorize("hasAnyRole('ADMIN', 'GESTOR', 'CLIENTE')")
+    public MuebleRespuesta consultarDetalle(@AuthenticationPrincipal UsuarioAutenticado usuario,
+                                            @PathVariable String id) {
+        boolean verUnidades = usuario.rol() != Rol.CLIENTE;
+        return muebleServicio.consultarDetalle(id, verUnidades);
     }
 }

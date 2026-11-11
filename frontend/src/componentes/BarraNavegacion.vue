@@ -2,14 +2,18 @@
 import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { sesion } from '../estado/sesion.js'
-import { carritoEstado } from '../estado/carritoEstado.js'
+import { carritoServicio, totalItemsCarrito } from '../servicios/carritoServicio.js'
 
 const router = useRouter()
 const menuAbierto = ref(false)
 
-onMounted(() => {
-  if (sesion.estaAutenticado.value && sesion.esCliente.value) {
-    carritoEstado.cargarCarrito()
+onMounted(async () => {
+  if (sesion.esCliente.value) {
+    try {
+      await carritoServicio.consultar()
+    } catch {
+      // Ignorar fallo silencioso al montar si el token expiró
+    }
   }
 })
 
@@ -23,7 +27,6 @@ function cerrarMenu() {
 
 function salir() {
   cerrarMenu()
-  carritoEstado.vaciar()
   sesion.cerrarSesion()
   router.push('/ingreso')
 }
@@ -77,42 +80,36 @@ function salir() {
               </router-link>
             </li>
 
-            <!-- CLIENTE: Carrito y Mis Pedidos -->
-            <template v-if="sesion.esCliente.value">
-              <li>
-                <router-link to="/carrito" class="enlace-nav enlace-con-badge" @click="cerrarMenu">
-                  <span>🛒 Carrito</span>
-                  <span
-                    v-if="carritoEstado.conteoUnidades.value > 0"
-                    class="badge-carrito"
-                    aria-label="Unidades en carrito"
-                  >
-                    {{ carritoEstado.conteoUnidades.value }}
-                  </span>
-                </router-link>
-              </li>
+            <!-- CLIENTE: Carrito con contador -->
+            <li v-if="sesion.esCliente.value">
+              <router-link to="/carrito" class="enlace-nav enlace-con-conteo" @click="cerrarMenu">
+                <span>Carrito</span>
+                <span v-if="totalItemsCarrito > 0" class="insignia-conteo">
+                  {{ totalItemsCarrito }}
+                </span>
+              </router-link>
+            </li>
 
-              <li>
-                <router-link to="/mis-pedidos" class="enlace-nav" @click="cerrarMenu">
-                  Mis Pedidos
-                </router-link>
-              </li>
-            </template>
+            <!-- CLIENTE: Mis Pedidos -->
+            <li v-if="sesion.esCliente.value">
+              <router-link to="/mis-pedidos" class="enlace-nav" @click="cerrarMenu">
+                Mis Pedidos
+              </router-link>
+            </li>
 
-            <!-- ADMIN y GESTOR: Inventario y Pedidos Recibidos -->
-            <template v-if="sesion.esAdmin.value || sesion.esGestor.value">
-              <li>
-                <router-link to="/inventario" class="enlace-nav" @click="cerrarMenu">
-                  Inventario
-                </router-link>
-              </li>
+            <!-- ADMIN y GESTOR: Inventario / Registrar Mueble -->
+            <li v-if="sesion.esAdmin.value || sesion.esGestor.value">
+              <router-link to="/inventario" class="enlace-nav" @click="cerrarMenu">
+                Inventario
+              </router-link>
+            </li>
 
-              <li>
-                <router-link to="/pedidos" class="enlace-nav" @click="cerrarMenu">
-                  Pedidos Recibidos
-                </router-link>
-              </li>
-            </template>
+            <!-- ADMIN y GESTOR: Pedidos Recibidos (Bandeja Global) -->
+            <li v-if="sesion.esAdmin.value || sesion.esGestor.value">
+              <router-link to="/pedidos" class="enlace-nav" @click="cerrarMenu">
+                Pedidos Recibidos
+              </router-link>
+            </li>
 
             <!-- ADMIN: Gestión de Roles -->
             <li v-if="sesion.esAdmin.value">
@@ -237,9 +234,6 @@ function salir() {
   border-radius: var(--radio-control);
   text-decoration: none;
   transition: color 0.2s ease, background-color 0.2s ease;
-  display: inline-flex;
-  align-items: center;
-  gap: 0.4rem;
 }
 
 .enlace-nav:hover,
@@ -248,13 +242,19 @@ function salir() {
   background-color: var(--color-nogal-fondo);
 }
 
-.badge-carrito {
+.enlace-con-conteo {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.insignia-conteo {
   background-color: var(--color-nogal-primario);
   color: #FFFFFF;
+  border-radius: 999px;
+  padding: 0.15rem 0.45rem;
   font-size: 0.75rem;
   font-weight: 700;
-  padding: 0.15rem 0.45rem;
-  border-radius: 10px;
   line-height: 1;
 }
 
@@ -302,7 +302,7 @@ function salir() {
 }
 
 /* Modo Mobile Responsive */
-@media (max-width: 960px) {
+@media (max-width: 900px) {
   .boton-hamburguesa {
     display: flex;
   }

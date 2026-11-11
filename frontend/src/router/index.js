@@ -1,17 +1,21 @@
 import { createRouter, createWebHistory } from 'vue-router'
 import { sesion } from '../estado/sesion.js'
 
-// Vistas
+// Vistas existentes
 import VistaIngreso from '../vistas/VistaIngreso.vue'
 import VistaRegistro from '../vistas/VistaRegistro.vue'
 import VistaDatosPersonales from '../vistas/VistaDatosPersonales.vue'
 import VistaGestionRoles from '../vistas/VistaGestionRoles.vue'
 import VistaCatalogo from '../vistas/VistaCatalogo.vue'
 import VistaInventario from '../vistas/VistaInventario.vue'
+import VistaNoAutorizado from '../vistas/VistaNoAutorizado.vue'
+
+// Nuevas vistas del Sprint 1 (Carrito y Pedidos)
 import VistaCarrito from '../vistas/VistaCarrito.vue'
 import VistaMisPedidos from '../vistas/VistaMisPedidos.vue'
 import VistaPedidosRecibidos from '../vistas/VistaPedidosRecibidos.vue'
-import VistaNoAutorizado from '../vistas/VistaNoAutorizado.vue'
+import VistaDetallePedido from '../vistas/VistaDetallePedido.vue'
+import VistaDetalleMueble from '../vistas/VistaDetalleMueble.vue'
 
 const routes = [
   {
@@ -37,6 +41,21 @@ const routes = [
     name: 'Catalogo',
     component: VistaCatalogo,
     meta: { requiereAutenticacion: true }
+  },
+  {
+    path: '/muebles/:id',
+    name: 'DetalleMueble',
+    component: VistaDetalleMueble,
+    meta: { requiereAutenticacion: true }
+  },
+  {
+    path: '/inventario',
+    name: 'Inventario',
+    component: VistaInventario,
+    meta: {
+      requiereAutenticacion: true,
+      roles: ['ADMIN', 'GESTOR']
+    }
   },
   {
     path: '/carrito',
@@ -66,9 +85,9 @@ const routes = [
     }
   },
   {
-    path: '/inventario',
-    name: 'Inventario',
-    component: VistaInventario,
+    path: '/pedidos/:id',
+    name: 'DetallePedido',
+    component: VistaDetallePedido,
     meta: {
       requiereAutenticacion: true,
       roles: ['ADMIN', 'GESTOR']
@@ -80,7 +99,7 @@ const routes = [
     component: VistaDatosPersonales,
     meta: {
       requiereAutenticacion: true,
-      roles: ['ADMIN', 'CLIENTE'] // GESTOR no la ve según especificación
+      roles: ['ADMIN', 'CLIENTE'] // GESTOR no la ve según reglas de negocio
     }
   },
   {
@@ -105,7 +124,10 @@ const routes = [
 
 const router = createRouter({
   history: createWebHistory(),
-  routes
+  routes,
+  scrollBehavior() {
+    return { top: 0 }
+  }
 })
 
 // Guarda global de navegación por roles y autenticación

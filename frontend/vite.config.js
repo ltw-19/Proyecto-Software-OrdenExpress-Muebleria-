@@ -6,6 +6,7 @@ export default defineConfig({
   plugins: [vue()],
   server: {
     port: 5173,
-    strictPort: true
+    strictPort: true,
+    open: true // Abre automáticamente el navegador al iniciar
   }
 })

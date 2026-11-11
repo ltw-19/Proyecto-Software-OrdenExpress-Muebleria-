@@ -95,6 +95,21 @@ public class MuebleServicio {
     }
 
     /**
+     * Historia: CONSULTAR MUEBLE (todos los roles). Detalle de un mueble específico por su id.
+     * Si no existe → 404.
+     *
+     * @param verUnidades true para ADMIN y GESTOR (ven la cifra); false para el CLIENTE (solo ve si hay).
+     */
+    public MuebleRespuesta consultarDetalle(String id, boolean verUnidades) {
+        if (id == null || id.isBlank()) {
+            throw new ExcepcionNegocio(HttpStatus.NOT_FOUND, "El mueble no existe.");
+        }
+        Mueble mueble = muebleRepositorio.buscarPorId(id.trim())
+                .orElseThrow(() -> new ExcepcionNegocio(HttpStatus.NOT_FOUND, "El mueble no existe."));
+        return aRespuesta(mueble, verUnidades);
+    }
+
+    /**
      * Categorías distintas, ordenadas alfabéticamente, para llenar el filtro del catálogo.
      * "Sala" y "sala" cuentan como la misma categoría (se muestra la primera escritura encontrada).
      */

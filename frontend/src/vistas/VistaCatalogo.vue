@@ -1,23 +1,17 @@
 <script setup>
 import { ref, onMounted, watch } from 'vue'
-import { useRouter } from 'vue-router'
 import { sesion } from '../estado/sesion.js'
-import { carritoEstado } from '../estado/carritoEstado.js'
 import { muebleServicio, extraerMensajeError } from '../servicios/muebleServicio.js'
 import { carritoServicio } from '../servicios/carritoServicio.js'
 import TarjetaMueble from '../componentes/TarjetaMueble.vue'
 import AlertaMensaje from '../componentes/AlertaMensaje.vue'
-
-const router = useRouter()
 
 const muebles = ref([])
 const categorias = ref([])
 const busqueda = ref('')
 const categoriaSeleccionada = ref('TODAS')
 const cargando = ref(false)
-const agregando = ref(false)
 const mensajeError = ref('')
-const mensajeExito = ref('')
 const mensajeAviso = ref('')
 let temporizadorBusqueda = null
 
@@ -26,9 +20,6 @@ onMounted(async () => {
     cargarCategorias(),
     cargarMuebles()
   ])
-  if (sesion.esCliente.value) {
-    carritoEstado.cargarCarrito()
-  }
 })
 
 // Búsqueda con debounce para mejorar la experiencia de usuario
@@ -81,28 +72,18 @@ function limpiarFiltros() {
   cargarMuebles()
 }
 
-async function manejarAnadirCarrito({ mueble, cantidad }) {
-  if (!sesion.esCliente.value) {
-    mensajeAviso.value = 'Solo las cuentas con rol CLIENTE pueden añadir productos al carrito.'
-    return
-  }
+const mensajeExito = ref('')
 
+async function manejarAnadirCarrito({ mueble, cantidad }) {
   mensajeError.value = ''
-  mensajeExito.value = ''
   mensajeAviso.value = ''
-  agregando.value = true
+  mensajeExito.value = ''
 
   try {
-    const carritoActualizado = await carritoServicio.agregarItem(mueble.id, cantidad)
-    carritoEstado.sincronizarConRespuesta(carritoActualizado)
-    mensajeExito.value = `¡Se añadieron ${cantidad} unidad(es) de "${mueble.nombre}" a tu carrito!`
+    await carritoServicio.agregarItem(mueble.id, cantidad)
+    mensajeExito.value = `¡Se agregó "${mueble.nombre}" (${cantidad} unid.) a tu carrito con éxito!`
   } catch (error) {
-    mensajeError.value = extraerMensajeError(
-      error,
-      'No se pudo añadir el mueble al carrito. Por favor intenta nuevamente.'
-    )
-  } finally {
-    agregando.value = false
+    mensajeError.value = extraerMensajeError(error, 'No se pudo añadir el mueble al carrito.')
   }
 }
 </script>
@@ -128,17 +109,17 @@ async function manejarAnadirCarrito({ mueble, cantidad }) {
 
     <!-- Alertas y Avisos del Sistema -->
     <AlertaMensaje
-      v-if="mensajeError"
-      tipo="error"
-      :mensaje="mensajeError"
-      @cerrar="mensajeError = ''"
-    />
-
-    <AlertaMensaje
       v-if="mensajeExito"
       tipo="exito"
       :mensaje="mensajeExito"
       @cerrar="mensajeExito = ''"
+    />
+
+    <AlertaMensaje
+      v-if="mensajeError"
+      tipo="error"
+      :mensaje="mensajeError"
+      @cerrar="mensajeError = ''"
     />
 
     <AlertaMensaje
@@ -250,6 +231,8 @@ async function manejarAnadirCarrito({ mueble, cantidad }) {
         @anadir-al-carrito="manejarAnadirCarrito"
       />
     </main>
+
+
   </div>
 </template>
 
@@ -462,4 +445,5 @@ async function manejarAnadirCarrito({ mueble, cantidad }) {
     gap: 1.1rem;
   }
 }
+
 </style>

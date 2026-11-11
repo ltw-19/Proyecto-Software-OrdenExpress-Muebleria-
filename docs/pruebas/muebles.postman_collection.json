@@ -16,6 +16,10 @@
     {
       "key": "token_cliente",
       "value": ""
+    },
+    {
+      "key": "id_mueble",
+      "value": ""
     }
   ],
   "item": [
@@ -129,6 +133,7 @@
               "    pm.expect(jsonData[0]).to.have.property('precioBs');",
               "    pm.expect(jsonData[0]).to.have.property('unidades');",
               "    pm.expect(jsonData[0].unidades).to.not.be.null;",
+              "    pm.collectionVariables.set('id_mueble', jsonData[0].id);",
               "});"
             ],
             "type": "text/javascript"
@@ -382,6 +387,131 @@
           "path": [
             "api",
             "muebles"
+          ]
+        }
+      }
+    },
+    {
+      "name": "9. Consultar Detalle de Mueble por ID (ADMIN - ve unidades)",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test(\"Status code is 200\", function () {",
+              "    pm.response.to.have.status(200);",
+              "});",
+              "var jsonData = pm.response.json();",
+              "pm.test(\"Retorna detalle del mueble con unidades visibles\", function () {",
+              "    pm.expect(jsonData.id).to.eql(pm.collectionVariables.get('id_mueble'));",
+              "    pm.expect(jsonData).to.have.property('codigo');",
+              "    pm.expect(jsonData).to.have.property('precioBs');",
+              "    pm.expect(jsonData).to.have.property('unidades');",
+              "});"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{token_admin}}"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/muebles/{{id_mueble}}",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "muebles",
+            "{{id_mueble}}"
+          ]
+        }
+      }
+    },
+    {
+      "name": "10. Consultar Detalle de Mueble por ID como CLIENTE (unidades ocultas)",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test(\"Status code is 200\", function () {",
+              "    pm.response.to.have.status(200);",
+              "});",
+              "var jsonData = pm.response.json();",
+              "pm.test(\"Unidades ocultas y disponible booleano\", function () {",
+              "    pm.expect(jsonData.id).to.eql(pm.collectionVariables.get('id_mueble'));",
+              "    pm.expect(jsonData).to.not.have.property('unidades');",
+              "    pm.expect(jsonData.disponible).to.be.a('boolean');",
+              "});"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{token_cliente}}"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/muebles/{{id_mueble}}",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "muebles",
+            "{{id_mueble}}"
+          ]
+        }
+      }
+    },
+    {
+      "name": "11. Consultar Detalle de Mueble Inexistente (Debe responder 404)",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test(\"Status code is 404 Not Found\", function () {",
+              "    pm.response.to.have.status(404);",
+              "});",
+              "var jsonData = pm.response.json();",
+              "pm.test(\"Mensaje de error en espanol\", function () {",
+              "    pm.expect(jsonData.mensaje).to.eql('El mueble no existe.');",
+              "});"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{token_cliente}}"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/muebles/id-que-no-existe",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "muebles",
+            "id-que-no-existe"
           ]
         }
       }

@@ -82,7 +82,7 @@ function agregarAlCarrito() {
 <template>
   <article class="tarjeta-mueble">
     <!-- Contenedor de Imagen -->
-    <div class="contenedor-imagen">
+    <router-link :to="`/muebles/${mueble.id}`" class="contenedor-imagen clic-detalle" :title="`Haz clic para ver detalles completos de ${mueble.nombre}`">
       <img
         v-if="mueble.urlFoto && !imagenConError"
         :src="mueble.urlFoto"
@@ -138,14 +138,17 @@ function agregarAlCarrito() {
           {{ estaDisponible ? 'Disponible' : 'Agotado' }}
         </span>
       </div>
-    </div>
+    </router-link>
 
     <!-- Cuerpo de la Tarjeta -->
     <div class="cuerpo-tarjeta">
       <div class="categoria-mueble">{{ mueble.categoria }}</div>
-      <h3 class="nombre-mueble" :title="mueble.nombre">{{ mueble.nombre }}</h3>
+      <h3 class="nombre-mueble" :title="mueble.nombre">
+        <router-link :to="`/muebles/${mueble.id}`" class="enlace-titulo-mueble">{{ mueble.nombre }}</router-link>
+      </h3>
 
       <p class="descripcion-mueble">{{ mueble.descripcion }}</p>
+      <router-link :to="`/muebles/${mueble.id}`" class="btn-ver-mas">Ver descripción y foto completa →</router-link>
 
       <!-- Ficha de especificaciones rápidas -->
       <div class="especificaciones">
@@ -471,5 +474,42 @@ function agregarAlCarrito() {
 .texto-admin-info {
   font-size: 0.8rem;
   color: var(--color-texto-mutado);
+}
+.clic-detalle {
+  cursor: pointer;
+  text-decoration: none;
+}
+
+.contenedor-imagen.clic-detalle:hover {
+  text-decoration: none;
+}
+
+.enlace-titulo-mueble {
+  color: inherit;
+  font-weight: inherit;
+  text-decoration: none;
+}
+
+.enlace-titulo-mueble:hover {
+  text-decoration: underline;
+  color: var(--color-nogal-secundario);
+}
+
+.btn-ver-mas {
+  display: inline-block;
+  align-self: flex-start;
+  background: transparent;
+  border: none;
+  padding: 0;
+  margin-bottom: 0.75rem;
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: var(--color-nogal-secundario);
+  cursor: pointer;
+  text-decoration: underline;
+}
+
+.btn-ver-mas:hover {
+  color: var(--color-nogal-primario);
 }
 </style>

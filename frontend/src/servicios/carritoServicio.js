@@ -1,45 +1,53 @@
+import { ref } from 'vue'
 import api from './api.js'
+import { extraerMensajeError } from './cuentaServicio.js'
 
-/**
- * Servicio para gestionar las operaciones del Carrito de Compras (CLIENTE).
- * Conforme al contrato de backend definido en CLAUDE.md:
- * - GET    /api/carrito
- * - POST   /api/carrito/items
- * - DELETE /api/carrito/items/{idMueble}
- */
+// Contador reactivo global del carrito (unidades totales)
+export const totalItemsCarrito = ref(0)
+
 export const carritoServicio = {
   /**
-   * Obtiene el carrito del cliente autenticado.
-   * @returns {Promise<Object>} Carrito con lista de items, cantidadItems, totalUsd, totalBs
+   * Consultar el carrito del cliente en sesión.
+   * GET /api/carrito
    */
-  async consultarCarrito() {
+  async consultar() {
     const respuesta = await api.get('/api/carrito')
+    totalItemsCarrito.value = respuesta.data?.cantidadItems ?? 0
     return respuesta.data
   },
 
   /**
-   * Añade un ítem con su cantidad al carrito del cliente.
-   * @param {string} idMueble Identificador del mueble (UUID)
-   * @param {number} cantidad Número entero de unidades (mínimo 1)
-   * @returns {Promise<Object>} Carrito actualizado con totales recalculados por el backend
+   * Añadir un mueble al carrito con una cantidad específica.
+   * POST /api/carrito/items
+   * @param {string} idMueble
+   * @param {number} cantidad
    */
   async agregarItem(idMueble, cantidad) {
     const respuesta = await api.post('/api/carrito/items', {
       idMueble,
-      cantidad: Number(cantidad)
+      cantidad: parseInt(cantidad, 10)
     })
+    totalItemsCarrito.value = respuesta.data?.cantidadItems ?? 0
     return respuesta.data
   },
 
   /**
-   * Elimina un ítem específico del carrito.
-   * @param {string} idMueble Identificador del mueble a remover
-   * @returns {Promise<Object>} Carrito actualizado con totales recalculados
+   * Eliminar un mueble del carrito.
+   * DELETE /api/carrito/items/{idMueble}
+   * @param {string} idMueble
    */
   async eliminarItem(idMueble) {
-    const respuesta = await api.delete(`/api/carrito/items/${encodeURIComponent(idMueble)}`)
+    const respuesta = await api.delete(`/api/carrito/items/${idMueble}`)
+    totalItemsCarrito.value = respuesta.data?.cantidadItems ?? 0
     return respuesta.data
+  },
+
+  /**
+   * Actualiza el contador local de unidades en carrito
+   */
+  actualizarContador(conteo) {
+    totalItemsCarrito.value = conteo
   }
 }
 
-export default carritoServicio
+export { extraerMensajeError }
