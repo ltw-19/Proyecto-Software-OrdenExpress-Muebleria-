@@ -1,0 +1,17 @@
+[ {
+  "id" : "caa078b5-6b93-43b6-81fd-444bc9fb5234",
+  "nombre" : "Administrador",
+  "apellido" : "OrdenExpress",
+  "correo" : "admin@ordenexpress.com",
+  "claveHash" : "$2a$10$sa.Hb0gwDZS7Koin4KCkjeDDbWUdVXEwqQHUE4RqtvIBFbWRAO/5C",
+  "rol" : "ADMIN",
+  "fechaCreacion" : "2026-11-09T15:44:50.140648Z"
+}, {
+  "id" : "5aea69f6-c87a-4c59-b57d-26d1c8c13f35",
+  "nombre" : "Gestor",
+  "apellido" : "de Ventas",
+  "correo" : "gestor@ordenexpress.com",
+  "claveHash" : "$2a$10$/b.MUBkD73LTOjjHeyY71./QVZCiNPsEqIlPKuz/hlPX88aB7Ao76",
+  "rol" : "GESTOR",
+  "fechaCreacion" : "2026-11-09T15:44:50.195650100Z"
+} ]
