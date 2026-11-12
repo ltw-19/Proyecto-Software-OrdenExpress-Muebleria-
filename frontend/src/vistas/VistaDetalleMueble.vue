@@ -5,6 +5,7 @@ import { sesion } from '../estado/sesion.js'
 import { muebleServicio, extraerMensajeError } from '../servicios/muebleServicio.js'
 import { carritoServicio } from '../servicios/carritoServicio.js'
 import AlertaMensaje from '../componentes/AlertaMensaje.vue'
+import VentanaFlotante from '../componentes/VentanaFlotante.vue'
 
 const route = useRoute()
 
@@ -94,6 +95,18 @@ const maximoCantidad = computed(() => {
   return 99
 })
 
+// Ventana flotante para mostrar advertencias y errores (p. ej. stock insuficiente)
+const ventanaFlotante = ref({
+  mostrar: false,
+  titulo: 'Stock Insuficiente',
+  mensaje: '',
+  tipo: 'error'
+})
+
+function cerrarVentanaFlotante() {
+  ventanaFlotante.value.mostrar = false
+}
+
 async function anadirAlCarrito() {
   if (!mueble.value || !estaDisponible.value) return
 
@@ -103,7 +116,12 @@ async function anadirAlCarrito() {
     return
   }
   if (num > maximoCantidad.value) {
-    mensajeError.value = `La cantidad máxima permitida es ${maximoCantidad.value} unidad(es).`
+    ventanaFlotante.value = {
+      mostrar: true,
+      titulo: 'Stock Insuficiente',
+      mensaje: `No hay suficiente stock disponible para añadir ${num} unidad(es) de «${mueble.value.nombre}» a tu carrito. La cantidad máxima permitida es de ${maximoCantidad.value} unidad(es).`,
+      tipo: 'error'
+    }
     return
   }
 
@@ -115,7 +133,21 @@ async function anadirAlCarrito() {
     await carritoServicio.agregarItem(mueble.value.id, num)
     mensajeExito.value = `¡Se agregó "${mueble.value.nombre}" (${num} unid.) a tu carrito!`
   } catch (error) {
-    mensajeError.value = extraerMensajeError(error, 'No se pudo añadir el mueble al carrito.')
+    const errorMsg = extraerMensajeError(error, 'No se pudo añadir el mueble al carrito.')
+    const esStockInsuficiente = errorMsg.toLowerCase().includes('stock') || error.response?.status === 409
+
+    if (esStockInsuficiente) {
+      ventanaFlotante.value = {
+        mostrar: true,
+        titulo: 'Stock Insuficiente',
+        mensaje: errorMsg === 'Stock insuficiente'
+          ? `No hay suficiente stock disponible para añadir ${num} unidad(es) de «${mueble.value.nombre}» a tu carrito. Por favor, selecciona una cantidad menor.`
+          : errorMsg,
+        tipo: 'error'
+      }
+    } else {
+      mensajeError.value = errorMsg
+    }
   } finally {
     agregando.value = false
   }
@@ -137,6 +169,16 @@ async function anadirAlCarrito() {
         <span class="actual">{{ mueble.nombre }}</span>
       </nav>
     </div>
+
+    <!-- Ventana Flotante para Notificaciones y Errores (p. ej. Stock Insuficiente) -->
+    <VentanaFlotante
+      :mostrar="ventanaFlotante.mostrar"
+      :titulo="ventanaFlotante.titulo"
+      :mensaje="ventanaFlotante.mensaje"
+      :tipo="ventanaFlotante.tipo"
+      texto-boton="Entendido"
+      @cerrar="cerrarVentanaFlotante"
+    />
 
     <AlertaMensaje
       v-if="mensajeError"

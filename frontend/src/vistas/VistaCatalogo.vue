@@ -5,6 +5,7 @@ import { muebleServicio, extraerMensajeError } from '../servicios/muebleServicio
 import { carritoServicio } from '../servicios/carritoServicio.js'
 import TarjetaMueble from '../componentes/TarjetaMueble.vue'
 import AlertaMensaje from '../componentes/AlertaMensaje.vue'
+import VentanaFlotante from '../componentes/VentanaFlotante.vue'
 
 const muebles = ref([])
 const categorias = ref([])
@@ -74,6 +75,18 @@ function limpiarFiltros() {
 
 const mensajeExito = ref('')
 
+// Ventana flotante para mostrar advertencias y errores (p. ej. stock insuficiente)
+const ventanaFlotante = ref({
+  mostrar: false,
+  titulo: 'Stock Insuficiente',
+  mensaje: '',
+  tipo: 'error'
+})
+
+function cerrarVentanaFlotante() {
+  ventanaFlotante.value.mostrar = false
+}
+
 async function manejarAnadirCarrito({ mueble, cantidad }) {
   mensajeError.value = ''
   mensajeAviso.value = ''
@@ -83,7 +96,21 @@ async function manejarAnadirCarrito({ mueble, cantidad }) {
     await carritoServicio.agregarItem(mueble.id, cantidad)
     mensajeExito.value = `¡Se agregó "${mueble.nombre}" (${cantidad} unid.) a tu carrito con éxito!`
   } catch (error) {
-    mensajeError.value = extraerMensajeError(error, 'No se pudo añadir el mueble al carrito.')
+    const errorMsg = extraerMensajeError(error, 'No se pudo añadir el mueble al carrito.')
+    const esStockInsuficiente = errorMsg.toLowerCase().includes('stock') || error.response?.status === 409
+
+    if (esStockInsuficiente) {
+      ventanaFlotante.value = {
+        mostrar: true,
+        titulo: 'Stock Insuficiente',
+        mensaje: errorMsg === 'Stock insuficiente'
+          ? `No hay suficiente stock disponible para añadir ${cantidad} unidad(es) de «${mueble.nombre}» a tu carrito. Por favor, selecciona una cantidad menor.`
+          : errorMsg,
+        tipo: 'error'
+      }
+    } else {
+      mensajeError.value = errorMsg
+    }
   }
 }
 </script>
@@ -106,6 +133,16 @@ async function manejarAnadirCarrito({ mueble, cantidad }) {
         </router-link>
       </div>
     </header>
+
+    <!-- Ventana Flotante para Notificaciones y Errores (p. ej. Stock Insuficiente) -->
+    <VentanaFlotante
+      :mostrar="ventanaFlotante.mostrar"
+      :titulo="ventanaFlotante.titulo"
+      :mensaje="ventanaFlotante.mensaje"
+      :tipo="ventanaFlotante.tipo"
+      texto-boton="Entendido"
+      @cerrar="cerrarVentanaFlotante"
+    />
 
     <!-- Alertas y Avisos del Sistema -->
     <AlertaMensaje
