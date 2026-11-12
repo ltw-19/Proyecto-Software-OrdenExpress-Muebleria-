@@ -1,5 +1,5 @@
 <script setup>
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed, nextTick, onMounted } from 'vue'
 import { muebleServicio, extraerMensajeError } from '../servicios/muebleServicio.js'
 import AlertaMensaje from '../componentes/AlertaMensaje.vue'
 
@@ -42,6 +42,10 @@ const erroresValidacion = ref({
 })
 
 const errorCargaImagen = ref(false)
+const formularioRegistroRef = ref(null)
+const inputNombreRef = ref(null)
+const btnCancelarRef = ref(null)
+const btnGuardarRef = ref(null)
 
 onMounted(async () => {
   await Promise.all([
@@ -107,10 +111,163 @@ function abrirModalRegistro() {
   }
   errorCargaImagen.value = false
   modalRegistroAbierto.value = true
+  nextTick(() => {
+    enfocarCampo(inputNombreRef.value)
+  })
 }
 
 function cerrarModalRegistro() {
   modalRegistroAbierto.value = false
+}
+
+function cerrarConEscape() {
+  if (!guardando.value) {
+    cerrarModalRegistro()
+  }
+}
+
+function obtenerCamposNavegables() {
+  if (!formularioRegistroRef.value) return []
+  return Array.from(
+    formularioRegistroRef.value.querySelectorAll('input, select, textarea, button')
+  ).filter((el) => !el.disabled && el.getClientRects().length > 0)
+}
+
+function enfocarCampo(el) {
+  if (!el) return
+  el.focus()
+  el.scrollIntoView({ block: 'nearest', behavior: 'smooth' })
+}
+
+function esEnBordeTexto(el, haciaAdelante) {
+  if (!el) return false
+  // Los inputs numéricos no exponen selectionStart en los navegadores: solo saltamos con ←/→ si están vacíos
+  if (el.tagName === 'INPUT' && el.type === 'number') {
+    return String(el.value ?? '') === ''
+  }
+  const inicio = el.selectionStart
+  const fin = el.selectionEnd
+  if (typeof inicio !== 'number' || typeof fin !== 'number' || inicio !== fin) {
+    return false
+  }
+  const longitud = (el.value ?? '').length
+  return haciaAdelante ? fin === longitud : inicio === 0
+}
+
+function manejarTecladoFormulario(e) {
+  const teclas = ['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight']
+  if (!teclas.includes(e.key) || e.altKey || e.ctrlKey || e.metaKey || e.shiftKey) {
+    return
+  }
+
+  const actual = e.target
+  const campos = obtenerCamposNavegables()
+  const indice = campos.indexOf(actual)
+  if (indice === -1) return
+
+  // Selector de categoría (<select>): ← / → cambia opción; ↑ / ↓ cambia de campo
+  if (actual.tagName === 'SELECT') {
+    if (e.key === 'ArrowLeft' || e.key === 'ArrowRight') {
+      e.preventDefault()
+      const opciones = actual.options
+      if (opciones.length > 0) {
+        const paso = e.key === 'ArrowRight' ? 1 : -1
+        const nuevoIndice = Math.max(0, Math.min(opciones.length - 1, actual.selectedIndex + paso))
+        if (nuevoIndice !== actual.selectedIndex) {
+          formulario.value.categoria = opciones[nuevoIndice].value
+        }
+      }
+      return
+    }
+    e.preventDefault()
+    const destino = e.key === 'ArrowDown' ? campos[indice + 1] : campos[indice - 1]
+    enfocarCampo(destino)
+    return
+  }
+
+  // Botones de acción (Cancelar / Guardar Mueble)
+  if (actual.tagName === 'BUTTON') {
+    if (e.key === 'ArrowUp') {
+      e.preventDefault()
+      const ultimoCampo = [...campos].reverse().find((el) => el.tagName !== 'BUTTON')
+      enfocarCampo(ultimoCampo)
+      return
+    }
+    if (e.key === 'ArrowLeft') {
+      e.preventDefault()
+      if (actual === btnGuardarRef.value && btnCancelarRef.value) {
+        enfocarCampo(btnCancelarRef.value)
+      }
+      return
+    }
+    if (e.key === 'ArrowRight') {
+      e.preventDefault()
+      if (actual === btnCancelarRef.value && btnGuardarRef.value) {
+        enfocarCampo(btnGuardarRef.value)
+      }
+      return
+    }
+    if (e.key === 'ArrowDown') {
+      e.preventDefault()
+    }
+    return
+  }
+
+  // Área de texto (<textarea>): respeta el salto de líneas internas si el texto tiene varias líneas
+  if (actual.tagName === 'TEXTAREA') {
+    const inicio = actual.selectionStart
+    const fin = actual.selectionEnd
+    if (typeof inicio !== 'number' || inicio !== fin) return
+
+    const valor = actual.value ?? ''
+    if (e.key === 'ArrowUp') {
+      const enPrimeraLinea = !valor.slice(0, inicio).includes('\n')
+      if (enPrimeraLinea) {
+        e.preventDefault()
+        enfocarCampo(campos[indice - 1])
+      }
+      return
+    }
+    if (e.key === 'ArrowDown') {
+      const enUltimaLinea = !valor.slice(fin).includes('\n')
+      if (enUltimaLinea) {
+        e.preventDefault()
+        enfocarCampo(btnGuardarRef.value || campos[indice + 1])
+      }
+      return
+    }
+    if (e.key === 'ArrowLeft' && !e.repeat && inicio === 0) {
+      e.preventDefault()
+      enfocarCampo(campos[indice - 1])
+      return
+    }
+    if (e.key === 'ArrowRight' && !e.repeat && fin === valor.length) {
+      e.preventDefault()
+      enfocarCampo(btnGuardarRef.value || campos[indice + 1])
+    }
+    return
+  }
+
+  // Inputs de texto, URL y numéricos
+  if (e.key === 'ArrowDown') {
+    e.preventDefault()
+    const destino = campos[indice + 1]
+    enfocarCampo(destino?.tagName === 'BUTTON' && btnGuardarRef.value ? btnGuardarRef.value : destino)
+    return
+  }
+  if (e.key === 'ArrowUp') {
+    e.preventDefault()
+    enfocarCampo(campos[indice - 1])
+    return
+  }
+  if ((e.key === 'ArrowLeft' || e.key === 'ArrowRight') && !e.repeat) {
+    const haciaAdelante = e.key === 'ArrowRight'
+    if (esEnBordeTexto(actual, haciaAdelante)) {
+      e.preventDefault()
+      const destino = campos[haciaAdelante ? indice + 1 : indice - 1]
+      enfocarCampo(destino?.tagName === 'BUTTON' && btnGuardarRef.value ? btnGuardarRef.value : destino)
+    }
+  }
 }
 
 // Convertir precio aceptando coma o punto a número con punto decimal
@@ -467,6 +624,7 @@ function formatearBs(valor) {
       role="dialog"
       aria-labelledby="titulo-modal"
       aria-modal="true"
+      @keydown.esc="cerrarConEscape"
     >
       <div class="contenido-modal tarjeta">
         <div class="cabecera-modal">
@@ -481,7 +639,17 @@ function formatearBs(valor) {
           </button>
         </div>
 
-        <form class="formulario" @submit.prevent="guardarMueble" novalidate>
+        <p class="ayuda-teclado-modal">
+          ⌨️ Navega entre los campos con las flechas <strong>↑ ↓</strong> (usa <strong>← →</strong> en Categoría, botones o bordes) y presiona <strong>Esc</strong> para cerrar.
+        </p>
+
+        <form
+          ref="formularioRegistroRef"
+          class="formulario"
+          @submit.prevent="guardarMueble"
+          @keydown="manejarTecladoFormulario"
+          novalidate
+        >
           <!-- Nombre -->
           <div class="grupo-campo">
             <label for="reg-nombre" class="etiqueta">
@@ -489,6 +657,7 @@ function formatearBs(valor) {
             </label>
             <input
               id="reg-nombre"
+              ref="inputNombreRef"
               v-model="formulario.nombre"
               type="text"
               class="campo-texto"
@@ -711,6 +880,7 @@ function formatearBs(valor) {
           <!-- Botones de Acción -->
           <div class="acciones-modal">
             <button
+              ref="btnCancelarRef"
               type="button"
               class="btn btn-outline"
               :disabled="guardando"
@@ -719,6 +889,7 @@ function formatearBs(valor) {
               Cancelar
             </button>
             <button
+              ref="btnGuardarRef"
               type="submit"
               class="btn btn-primario"
               :disabled="guardando"
@@ -1011,6 +1182,16 @@ function formatearBs(valor) {
   align-items: center;
 }
 
+.ayuda-teclado-modal {
+  font-size: 0.8rem;
+  color: var(--color-nogal-primario);
+  background-color: var(--color-nogal-fondo);
+  border: 1px solid var(--color-nogal-claro);
+  border-radius: var(--radio-control);
+  padding: 0.55rem 0.75rem;
+  margin-bottom: 1rem;
+}
+
 .acciones-modal {
   display: flex;
   justify-content: flex-end;
@@ -1018,6 +1199,11 @@ function formatearBs(valor) {
   margin-top: 1.25rem;
   padding-top: 1rem;
   border-top: 1px solid var(--color-borde);
+}
+
+.acciones-modal .btn:focus-visible {
+  outline: 3px solid rgba(93, 64, 55, 0.35);
+  outline-offset: 2px;
 }
 
 @media (max-width: 768px) {
