@@ -4,6 +4,7 @@ import { useRoute, useRouter } from 'vue-router'
 import { sesion } from '../estado/sesion.js'
 import { pedidoServicio, extraerMensajeError } from '../servicios/pedidoServicio.js'
 import AlertaMensaje from '../componentes/AlertaMensaje.vue'
+import VentanaFlotante from '../componentes/VentanaFlotante.vue'
 
 const route = useRoute()
 const router = useRouter()
@@ -13,6 +14,28 @@ const cargando = ref(false)
 const procesando = ref(false)
 const mensajeError = ref('')
 const mensajeExito = ref('')
+
+// ── Ventana flotante reutilizable ────────────────────────────────────────────
+// Modos: 'ninguno' | 'confirmar-aprobar' | 'confirmar-rechazar' | 'resultado'
+const ventana = ref({
+  mostrar: false,
+  tipo: 'error',
+  titulo: '',
+  mensaje: '',
+  textoBoton: 'Entendido',
+  accionPendiente: null   // función a ejecutar al confirmar
+})
+
+function cerrarVentana() {
+  ventana.value.mostrar = false
+  ventana.value.accionPendiente = null
+}
+
+async function confirmarVentana() {
+  const accion = ventana.value.accionPendiente
+  cerrarVentana()
+  if (accion) await accion()
+}
 
 onMounted(async () => {
   await cargarDetalle()
@@ -33,18 +56,42 @@ async function cargarDetalle() {
 
 async function aprobar() {
   if (!pedido.value || pedido.value.estado !== 'PENDIENTE') return
-  const confirmar = window.confirm(`¿Aprobar el pedido ${pedido.value.numero}? Se descontará el stock de los muebles del inventario.`)
-  if (!confirmar) return
 
+  ventana.value = {
+    mostrar: true,
+    tipo: 'aviso',
+    titulo: 'Aprobar Pedido',
+    mensaje: `¿Aprobar el pedido ${pedido.value.numero}? Se descontará el stock de los muebles del inventario. Esta acción no se puede deshacer.`,
+    textoBoton: 'Sí, Aprobar',
+    accionPendiente: ejecutarAprobacion
+  }
+}
+
+async function ejecutarAprobacion() {
   procesando.value = true
   mensajeError.value = ''
   mensajeExito.value = ''
 
   try {
     pedido.value = await pedidoServicio.aprobar(pedido.value.id)
-    mensajeExito.value = `El pedido ${pedido.value.numero} ha sido APROBADO y el stock fue descontado.`
+    ventana.value = {
+      mostrar: true,
+      tipo: 'exito',
+      titulo: 'Pedido Aprobado',
+      mensaje: `El pedido ${pedido.value.numero} ha sido APROBADO exitosamente. El stock del inventario fue descontado.`,
+      textoBoton: 'Entendido',
+      accionPendiente: null
+    }
   } catch (error) {
-    mensajeError.value = extraerMensajeError(error, 'No se pudo aprobar el pedido.')
+    const errorMsg = extraerMensajeError(error, 'No se pudo aprobar el pedido.')
+    ventana.value = {
+      mostrar: true,
+      tipo: 'error',
+      titulo: 'Error al Aprobar',
+      mensaje: errorMsg,
+      textoBoton: 'Entendido',
+      accionPendiente: null
+    }
   } finally {
     procesando.value = false
   }
@@ -52,18 +99,42 @@ async function aprobar() {
 
 async function rechazar() {
   if (!pedido.value || pedido.value.estado !== 'PENDIENTE') return
-  const confirmar = window.confirm(`¿Rechazar el pedido ${pedido.value.numero}? El estado cambiará a RECHAZADO.`)
-  if (!confirmar) return
 
+  ventana.value = {
+    mostrar: true,
+    tipo: 'aviso',
+    titulo: 'Rechazar Pedido',
+    mensaje: `¿Rechazar el pedido ${pedido.value.numero}? El estado cambiará a RECHAZADO. El stock no se devuelve.`,
+    textoBoton: 'Sí, Rechazar',
+    accionPendiente: ejecutarRechazo
+  }
+}
+
+async function ejecutarRechazo() {
   procesando.value = true
   mensajeError.value = ''
   mensajeExito.value = ''
 
   try {
     pedido.value = await pedidoServicio.rechazar(pedido.value.id)
-    mensajeExito.value = `El pedido ${pedido.value.numero} ha sido RECHAZADO.`
+    ventana.value = {
+      mostrar: true,
+      tipo: 'info',
+      titulo: 'Pedido Rechazado',
+      mensaje: `El pedido ${pedido.value.numero} ha sido RECHAZADO. El stock no fue modificado.`,
+      textoBoton: 'Entendido',
+      accionPendiente: null
+    }
   } catch (error) {
-    mensajeError.value = extraerMensajeError(error, 'No se pudo rechazar el pedido.')
+    const errorMsg = extraerMensajeError(error, 'No se pudo rechazar el pedido.')
+    ventana.value = {
+      mostrar: true,
+      tipo: 'error',
+      titulo: 'Error al Rechazar',
+      mensaje: errorMsg,
+      textoBoton: 'Entendido',
+      accionPendiente: null
+    }
   } finally {
     procesando.value = false
   }
@@ -71,9 +142,18 @@ async function rechazar() {
 
 async function eliminar() {
   if (!pedido.value) return
-  const confirmar = window.confirm(`¿Eliminar definitivamente el pedido ${pedido.value.numero}? Esta acción no devuelve stock ni se puede deshacer.`)
-  if (!confirmar) return
 
+  ventana.value = {
+    mostrar: true,
+    tipo: 'error',
+    titulo: 'Eliminar Pedido',
+    mensaje: `¿Eliminar definitivamente el pedido ${pedido.value.numero}? Esta acción no devuelve stock y no se puede deshacer.`,
+    textoBoton: 'Sí, Eliminar',
+    accionPendiente: ejecutarEliminacion
+  }
+}
+
+async function ejecutarEliminacion() {
   procesando.value = true
   mensajeError.value = ''
 
@@ -81,7 +161,15 @@ async function eliminar() {
     await pedidoServicio.eliminar(pedido.value.id)
     router.push('/pedidos')
   } catch (error) {
-    mensajeError.value = extraerMensajeError(error, 'No se pudo eliminar el pedido.')
+    const errorMsg = extraerMensajeError(error, 'No se pudo eliminar el pedido.')
+    ventana.value = {
+      mostrar: true,
+      tipo: 'error',
+      titulo: 'Error al Eliminar',
+      mensaje: errorMsg,
+      textoBoton: 'Entendido',
+      accionPendiente: null
+    }
     procesando.value = false
   }
 }
@@ -115,6 +203,38 @@ function formatearFecha(isoString) {
         ← Volver a Pedidos Recibidos
       </router-link>
     </div>
+
+    <!-- Ventana Flotante para confirmaciones y resultados (aprobar/rechazar) -->
+    <VentanaFlotante
+      :mostrar="ventana.mostrar"
+      :tipo="ventana.tipo"
+      :titulo="ventana.titulo"
+      :mensaje="ventana.mensaje"
+      :texto-boton="ventana.textoBoton"
+      :cerrar-al-fondo="!ventana.accionPendiente"
+      :cerrar-con-escape="!ventana.accionPendiente"
+      @cerrar="ventana.accionPendiente ? confirmarVentana() : cerrarVentana()"
+    >
+      <template v-if="ventana.accionPendiente" #acciones>
+        <div class="acciones-confirmacion">
+          <button type="button" class="btn btn-secundario" @click="cerrarVentana">
+            Cancelar
+          </button>
+          <button
+            type="button"
+            :class="[
+              'btn',
+              ventana.titulo.includes('Rechazar') ? 'btn-rechazar' :
+              ventana.titulo.includes('Eliminar') ? 'btn-peligro'  :
+              'btn-aprobar'
+            ]"
+            @click="confirmarVentana"
+          >
+            {{ ventana.textoBoton }}
+          </button>
+        </div>
+      </template>
+    </VentanaFlotante>
 
     <AlertaMensaje
       v-if="mensajeError"
@@ -488,5 +608,16 @@ function formatearFecha(isoString) {
   .lista-items-movil {
     display: flex;
   }
+}
+
+/* Botonera de confirmación dentro de la ventana flotante */
+.acciones-confirmacion {
+  display: flex;
+  gap: 0.75rem;
+  width: 100%;
+}
+
+.acciones-confirmacion .btn {
+  flex: 1;
 }
 </style>

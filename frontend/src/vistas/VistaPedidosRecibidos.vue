@@ -3,6 +3,7 @@ import { ref, computed, onMounted } from 'vue'
 import { sesion } from '../estado/sesion.js'
 import { pedidoServicio, extraerMensajeError } from '../servicios/pedidoServicio.js'
 import AlertaMensaje from '../componentes/AlertaMensaje.vue'
+import VentanaFlotante from '../componentes/VentanaFlotante.vue'
 
 const pedidos = ref([])
 const cargando = ref(false)
@@ -12,6 +13,27 @@ const terminoBusqueda = ref('')
 const pedidoExpandidoId = ref(null)
 const mensajeError = ref('')
 const mensajeExito = ref('')
+
+// ── Ventana flotante reutilizable ────────────────────────────────────────────
+const ventana = ref({
+  mostrar: false,
+  tipo: 'error',
+  titulo: '',
+  mensaje: '',
+  textoBoton: 'Entendido',
+  accionPendiente: null
+})
+
+function cerrarVentana() {
+  ventana.value.mostrar = false
+  ventana.value.accionPendiente = null
+}
+
+async function confirmarVentana() {
+  const accion = ventana.value.accionPendiente
+  cerrarVentana()
+  if (accion) await accion()
+}
 
 onMounted(async () => {
   await cargarPedidos()
@@ -57,9 +79,18 @@ function alternarDetalle(id) {
 // ACCIONES EXCLUSIVAS DEL GESTOR DE VENTAS
 async function aprobarPedido(pedido) {
   if (pedido.estado !== 'PENDIENTE') return
-  const confirmar = window.confirm(`¿Aprobar el pedido ${pedido.numero}? Se descontará el stock de los muebles en el inventario.`)
-  if (!confirmar) return
 
+  ventana.value = {
+    mostrar: true,
+    tipo: 'aviso',
+    titulo: 'Aprobar Pedido',
+    mensaje: `¿Aprobar el pedido ${pedido.numero}? Se descontará el stock de los muebles en el inventario. Esta acción no se puede deshacer.`,
+    textoBoton: 'Sí, Aprobar',
+    accionPendiente: () => ejecutarAprobacion(pedido)
+  }
+}
+
+async function ejecutarAprobacion(pedido) {
   procesandoId.value = pedido.id
   mensajeError.value = ''
   mensajeExito.value = ''
@@ -67,9 +98,24 @@ async function aprobarPedido(pedido) {
   try {
     const actualizado = await pedidoServicio.aprobar(pedido.id)
     pedido.estado = actualizado.estado
-    mensajeExito.value = `El pedido ${pedido.numero} ha sido APROBADO exitosamente y el inventario fue actualizado.`
+    ventana.value = {
+      mostrar: true,
+      tipo: 'exito',
+      titulo: 'Pedido Aprobado',
+      mensaje: `El pedido ${pedido.numero} ha sido APROBADO exitosamente. El inventario fue actualizado.`,
+      textoBoton: 'Entendido',
+      accionPendiente: null
+    }
   } catch (error) {
-    mensajeError.value = extraerMensajeError(error, 'No se pudo aprobar el pedido.')
+    const errorMsg = extraerMensajeError(error, 'No se pudo aprobar el pedido.')
+    ventana.value = {
+      mostrar: true,
+      tipo: 'error',
+      titulo: 'Error al Aprobar',
+      mensaje: errorMsg,
+      textoBoton: 'Entendido',
+      accionPendiente: null
+    }
     await cargarPedidos()
   } finally {
     procesandoId.value = null
@@ -78,9 +124,18 @@ async function aprobarPedido(pedido) {
 
 async function rechazarPedido(pedido) {
   if (pedido.estado !== 'PENDIENTE') return
-  const confirmar = window.confirm(`¿Rechazar el pedido ${pedido.numero}? El pedido quedará en estado RECHAZADO.`)
-  if (!confirmar) return
 
+  ventana.value = {
+    mostrar: true,
+    tipo: 'aviso',
+    titulo: 'Rechazar Pedido',
+    mensaje: `¿Rechazar el pedido ${pedido.numero}? El pedido quedará en estado RECHAZADO. El stock no se devuelve.`,
+    textoBoton: 'Sí, Rechazar',
+    accionPendiente: () => ejecutarRechazo(pedido)
+  }
+}
+
+async function ejecutarRechazo(pedido) {
   procesandoId.value = pedido.id
   mensajeError.value = ''
   mensajeExito.value = ''
@@ -88,9 +143,24 @@ async function rechazarPedido(pedido) {
   try {
     const actualizado = await pedidoServicio.rechazar(pedido.id)
     pedido.estado = actualizado.estado
-    mensajeExito.value = `El pedido ${pedido.numero} ha sido RECHAZADO.`
+    ventana.value = {
+      mostrar: true,
+      tipo: 'info',
+      titulo: 'Pedido Rechazado',
+      mensaje: `El pedido ${pedido.numero} ha sido RECHAZADO. El stock no fue modificado.`,
+      textoBoton: 'Entendido',
+      accionPendiente: null
+    }
   } catch (error) {
-    mensajeError.value = extraerMensajeError(error, 'No se pudo rechazar el pedido.')
+    const errorMsg = extraerMensajeError(error, 'No se pudo rechazar el pedido.')
+    ventana.value = {
+      mostrar: true,
+      tipo: 'error',
+      titulo: 'Error al Rechazar',
+      mensaje: errorMsg,
+      textoBoton: 'Entendido',
+      accionPendiente: null
+    }
     await cargarPedidos()
   } finally {
     procesandoId.value = null
@@ -98,19 +168,42 @@ async function rechazarPedido(pedido) {
 }
 
 async function eliminarPedido(pedido) {
-  const confirmar = window.confirm(`¿Eliminar definitivamente el pedido ${pedido.numero}?`)
-  if (!confirmar) return
+  ventana.value = {
+    mostrar: true,
+    tipo: 'error',
+    titulo: 'Eliminar Pedido',
+    mensaje: `¿Eliminar definitivamente el pedido ${pedido.numero}? Esta acción no devuelve stock y no se puede deshacer.`,
+    textoBoton: 'Sí, Eliminar',
+    accionPendiente: () => ejecutarEliminacion(pedido)
+  }
+}
 
+async function ejecutarEliminacion(pedido) {
   procesandoId.value = pedido.id
   mensajeError.value = ''
   mensajeExito.value = ''
 
   try {
     await pedidoServicio.eliminar(pedido.id)
-    mensajeExito.value = `El pedido ${pedido.numero} ha sido eliminado.`
+    ventana.value = {
+      mostrar: true,
+      tipo: 'exito',
+      titulo: 'Pedido Eliminado',
+      mensaje: `El pedido ${pedido.numero} ha sido eliminado correctamente.`,
+      textoBoton: 'Entendido',
+      accionPendiente: null
+    }
     await cargarPedidos()
   } catch (error) {
-    mensajeError.value = extraerMensajeError(error, 'No se pudo eliminar el pedido.')
+    const errorMsg = extraerMensajeError(error, 'No se pudo eliminar el pedido.')
+    ventana.value = {
+      mostrar: true,
+      tipo: 'error',
+      titulo: 'Error al Eliminar',
+      mensaje: errorMsg,
+      textoBoton: 'Entendido',
+      accionPendiente: null
+    }
   } finally {
     procesandoId.value = null
   }
@@ -160,6 +253,37 @@ function formatearFecha(isoString) {
         ↻ Actualizar
       </button>
     </header>
+
+    <!-- Ventana Flotante para confirmaciones y resultados (aprobar/rechazar) -->
+    <VentanaFlotante
+      :mostrar="ventana.mostrar"
+      :tipo="ventana.tipo"
+      :titulo="ventana.titulo"
+      :mensaje="ventana.mensaje"
+      :texto-boton="ventana.textoBoton"
+      :cerrar-al-fondo="!ventana.accionPendiente"
+      :cerrar-con-escape="!ventana.accionPendiente"
+      @cerrar="ventana.accionPendiente ? confirmarVentana() : cerrarVentana()"
+    >
+      <template v-if="ventana.accionPendiente" #acciones>
+        <div class="acciones-confirmacion">
+          <button type="button" class="btn btn-secundario" @click="cerrarVentana">
+            Cancelar
+          </button>
+          <button
+            type="button"
+            :class="[
+              ventana.titulo.includes('Rechazar') ? 'btn-accion btn-accion-rechazar' :
+              ventana.titulo.includes('Eliminar') ? 'btn btn-peligro'               :
+              'btn-accion btn-accion-aprobar'
+            ]"
+            @click="confirmarVentana"
+          >
+            {{ ventana.textoBoton }}
+          </button>
+        </div>
+      </template>
+    </VentanaFlotante>
 
     <AlertaMensaje
       v-if="mensajeError"
@@ -799,5 +923,29 @@ function formatearFecha(isoString) {
   .lista-tarjetas-movil {
     display: flex;
   }
+}
+
+/* Botonera de confirmación dentro de la ventana flotante */
+.acciones-confirmacion {
+  display: flex;
+  flex-wrap: nowrap;
+  gap: 0.75rem;
+  width: 100%;
+}
+
+.acciones-confirmacion .btn-accion,
+.acciones-confirmacion .btn {
+  flex: 1;
+  min-width: 0;
+  white-space: nowrap;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.65rem 1rem;
+  font-weight: 600;
+  border-radius: var(--radio-control);
+  cursor: pointer;
+  border: none;
+  transition: background-color 0.2s ease;
 }
 </style>
