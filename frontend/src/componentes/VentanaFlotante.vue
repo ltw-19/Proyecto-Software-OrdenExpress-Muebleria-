@@ -36,8 +36,25 @@ const props = defineProps({
 const emit = defineEmits(['cerrar', 'update:mostrar'])
 
 const idTitulo = `titulo-flotante-${Math.random().toString(36).substring(2, 9)}`
+const cajaFlotanteRef = ref(null)
+const pieFlotanteRef = ref(null)
 const botonAccionRef = ref(null)
 let elementoPrevio = null
+
+function enfocarDialogo() {
+  nextTick(() => {
+    if (botonAccionRef.value) {
+      botonAccionRef.value.focus()
+      return
+    }
+    const primerBoton = pieFlotanteRef.value?.querySelector('button:not(:disabled)')
+    if (primerBoton) {
+      primerBoton.focus()
+      return
+    }
+    cajaFlotanteRef.value?.focus()
+  })
+}
 
 function cerrar() {
   emit('cerrar')
@@ -62,14 +79,13 @@ watch(
     if (nuevoValor) {
       elementoPrevio = document.activeElement
       document.body.style.overflow = 'hidden'
-      nextTick(() => {
-        botonAccionRef.value?.focus()
-      })
+      enfocarDialogo()
     } else {
       document.body.style.overflow = ''
-      if (elementoPrevio && typeof elementoPrevio.focus === 'function') {
+      if (elementoPrevio && elementoPrevio.isConnected && typeof elementoPrevio.focus === 'function') {
         elementoPrevio.focus()
       }
+      elementoPrevio = null
     }
   }
 )
@@ -79,9 +95,7 @@ onMounted(() => {
   if (props.mostrar) {
     elementoPrevio = document.activeElement
     document.body.style.overflow = 'hidden'
-    nextTick(() => {
-      botonAccionRef.value?.focus()
-    })
+    enfocarDialogo()
   }
 })
 
@@ -102,7 +116,7 @@ onUnmounted(() => {
         :aria-labelledby="idTitulo"
         @click="manejarClicFondo"
       >
-        <div class="caja-flotante" :class="`tipo-${tipo}`" role="document">
+        <div ref="cajaFlotanteRef" class="caja-flotante" :class="`tipo-${tipo}`" role="document" tabindex="-1">
           <!-- Botón de cierre en la esquina superior derecha -->
           <button
             type="button"
@@ -196,7 +210,7 @@ onUnmounted(() => {
           </div>
 
           <!-- Botón de acción -->
-          <div class="pie-flotante">
+          <div ref="pieFlotanteRef" class="pie-flotante">
             <slot name="acciones">
               <button
                 ref="botonAccionRef"
@@ -247,6 +261,10 @@ onUnmounted(() => {
   display: flex;
   flex-direction: column;
   align-items: center;
+}
+
+.caja-flotante:focus {
+  outline: none;
 }
 
 /* Botón cerrar '×' */

@@ -212,8 +212,8 @@ function formatearFecha(isoString) {
       :mensaje="ventana.mensaje"
       :texto-boton="ventana.textoBoton"
       :cerrar-al-fondo="!ventana.accionPendiente"
-      :cerrar-con-escape="!ventana.accionPendiente"
-      @cerrar="ventana.accionPendiente ? confirmarVentana() : cerrarVentana()"
+      :cerrar-con-escape="true"
+      @cerrar="cerrarVentana"
     >
       <template v-if="ventana.accionPendiente" #acciones>
         <div class="acciones-confirmacion">

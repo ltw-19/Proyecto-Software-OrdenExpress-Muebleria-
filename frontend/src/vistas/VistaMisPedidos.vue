@@ -2,12 +2,34 @@
 import { ref, onMounted } from 'vue'
 import { pedidoServicio, extraerMensajeError } from '../servicios/pedidoServicio.js'
 import AlertaMensaje from '../componentes/AlertaMensaje.vue'
+import VentanaFlotante from '../componentes/VentanaFlotante.vue'
 
 const pedidos = ref([])
 const cargando = ref(false)
 const eliminandoId = ref(null)
 const mensajeError = ref('')
 const mensajeExito = ref('')
+
+// Ventana flotante para confirmar eliminación y mostrar resultados
+const ventana = ref({
+  mostrar: false,
+  tipo: 'error',
+  titulo: '',
+  mensaje: '',
+  textoBoton: 'Entendido',
+  accionPendiente: null
+})
+
+function cerrarVentana() {
+  ventana.value.mostrar = false
+  ventana.value.accionPendiente = null
+}
+
+async function confirmarVentana() {
+  const accion = ventana.value.accionPendiente
+  cerrarVentana()
+  if (accion) await accion()
+}
 
 onMounted(async () => {
   await cargarPedidos()
@@ -33,19 +55,42 @@ async function eliminarPedido(pedido) {
     return
   }
 
-  const confirmar = window.confirm(`¿Estás seguro de que deseas eliminar el pedido ${pedido.numero}? Esta acción no se puede deshacer.`)
-  if (!confirmar) return
+  ventana.value = {
+    mostrar: true,
+    tipo: 'error',
+    titulo: 'Eliminar Pedido',
+    mensaje: `¿Estás seguro de que deseas eliminar el pedido ${pedido.numero}? Esta acción no se puede deshacer.`,
+    textoBoton: 'Sí, Eliminar',
+    accionPendiente: () => ejecutarEliminacion(pedido)
+  }
+}
 
+async function ejecutarEliminacion(pedido) {
   eliminandoId.value = pedido.id
   mensajeError.value = ''
   mensajeExito.value = ''
 
   try {
     await pedidoServicio.eliminar(pedido.id)
-    mensajeExito.value = `El pedido ${pedido.numero} ha sido eliminado exitosamente.`
+    ventana.value = {
+      mostrar: true,
+      tipo: 'exito',
+      titulo: 'Pedido Eliminado',
+      mensaje: `El pedido ${pedido.numero} ha sido eliminado exitosamente.`,
+      textoBoton: 'Entendido',
+      accionPendiente: null
+    }
     await cargarPedidos()
   } catch (error) {
-    mensajeError.value = extraerMensajeError(error, 'Error al eliminar el pedido.')
+    const errorMsg = extraerMensajeError(error, 'Error al eliminar el pedido.')
+    ventana.value = {
+      mostrar: true,
+      tipo: 'error',
+      titulo: 'Error al Eliminar',
+      mensaje: errorMsg,
+      textoBoton: 'Entendido',
+      accionPendiente: null
+    }
   } finally {
     eliminandoId.value = null
   }
@@ -98,6 +143,29 @@ function formatearFecha(isoString) {
         ↻ Actualizar
       </button>
     </header>
+
+    <!-- Ventana Flotante para confirmar eliminación y mostrar resultados -->
+    <VentanaFlotante
+      :mostrar="ventana.mostrar"
+      :tipo="ventana.tipo"
+      :titulo="ventana.titulo"
+      :mensaje="ventana.mensaje"
+      :texto-boton="ventana.textoBoton"
+      :cerrar-al-fondo="!ventana.accionPendiente"
+      :cerrar-con-escape="true"
+      @cerrar="cerrarVentana"
+    >
+      <template v-if="ventana.accionPendiente" #acciones>
+        <div class="acciones-confirmacion">
+          <button type="button" class="btn btn-secundario" @click="cerrarVentana">
+            Cancelar
+          </button>
+          <button type="button" class="btn btn-peligro" @click="confirmarVentana">
+            {{ ventana.textoBoton }}
+          </button>
+        </div>
+      </template>
+    </VentanaFlotante>
 
     <AlertaMensaje
       v-if="mensajeError"
@@ -457,5 +525,15 @@ function formatearFecha(isoString) {
   .bloque-totales {
     align-items: flex-start;
   }
+}
+
+.acciones-confirmacion {
+  display: flex;
+  gap: 0.75rem;
+  width: 100%;
+}
+
+.acciones-confirmacion .btn {
+  flex: 1;
 }
 </style>
